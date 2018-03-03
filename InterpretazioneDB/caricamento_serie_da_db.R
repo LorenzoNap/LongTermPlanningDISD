@@ -133,7 +133,7 @@ reg.arr.ss <- ts(serie.storica$Regional_ARR, frequency=12, start=startDateSito, 
 reg.dep.ss <- ts(serie.storica$Regional_DEP, frequency=12, start=startDateSito, end=endDateSito)
 int.arr.ss <- ts(serie.storica$International_ARR, frequency=12, start=startDateSito, end=endDateSito)
 int.dep.ss <- ts(serie.storica$International_DEP, frequency=12, start=startDateSito, end=endDateSito)
-dom.arr.ss <- ts(serie.storica$Domestic_ARR, frequency=12, start=startDateSito, end=endDateSito)
+dom.arr.ss <- ts(serie.storica$Domestic_ARR, frequency=12, start=c(2012,5), end=endDateSito) # non capisco perchè è sfasato
 dom.dep.ss <- ts(serie.storica$Domestic_DEP, frequency=12, start=startDateSito, end=endDateSito)
 
 
@@ -148,31 +148,25 @@ dom.dep.db.window <- window(dom.dep.db, start = startDateSito, end=endDateSito, 
 
 
 plotConfrontoSerie <- function(serieSito, serieDB, title, save = FALSE){
-  if(save){
-    File <- paste("./InterpretazioneDB/confrontoSerie/",title,".jpg")
-    if (!file.exists(File))  dir.create(dirname(File), showWarnings = FALSE)
-    png(File, width = 1200, height = 800)
-  }
-  
-  plot(serieSito, col=4, main=title, ylab="#Voli", xlab="Year")
-  lines(serieDB, col=3, lwd=2)
-  legend("topleft", lty=1, col=c(4,3,"midnightblue"), lwd = c(2,2),    
-         legend=c("Serie Sito","Serie DB"), bty="n")
-  
-  if(save){
-    dev.off()
-  }
-  
-  if(save){
-    File <- paste("./InterpretazioneDB/confrontoSerie/AreaChart",title,".jpg")
-    if (!file.exists(File))  dir.create(dirname(File), showWarnings = FALSE)
-    png(File, width = 1200, height = 800)
-  }
-  
+ 
   df <- data.frame(Y=as.matrix(serieSito), date=as.Date(as.yearmon(time(serieSito))))
   df2 <- data.frame(Y=as.matrix(serieDB), date=as.Date(as.yearmon(time(serieDB))))
   min <- min(df2[,1], df[,1]) - 50
   max <- max(df2[,1], df[,1]) + 10
+  
+  #confronto linee
+  ggplot() +
+    geom_line(data=df, aes(date, Y, color="Voli Sito"), size = 0.5) +
+    geom_line(data=df2, aes(date, Y,  color="Voli DB"), size = 0.5)+
+    labs(title=title, 
+         y="Numero voli", x = "Data")+
+    scale_colour_manual(name="Serie",
+                        values=c("blue", "red"))+
+    scale_y_continuous(limits=c(min,max),oob = rescale_none)
+  
+  if(save){
+    ggsave(paste("./InterpretazioneDB/confrontoSerie/Grafici/LinesChart",title,".jpg"))
+  }
   
   ggplot() +
     geom_area(data=df, aes(date, Y, fill="Voli Sito"), alpha=0.3) + 
@@ -184,8 +178,9 @@ plotConfrontoSerie <- function(serieSito, serieDB, title, save = FALSE){
     scale_fill_manual("Serie:", values=c("red", "blue"))+
     scale_y_continuous(limits=c(min,max),oob = rescale_none)
   
+  
   if(save){
-    dev.off()
+    ggsave(paste("./InterpretazioneDB/confrontoSerie/Grafici/AreaChart",title,".jpg"))
   }
   
 }
@@ -218,17 +213,13 @@ printTableDifference <- function(dataFrame, title, save = FALSE){
     titleTable, 
     1, 1, 1, ncol(table))
   
-  if(save){
-    File <- paste("./InterpretazioneDB/confrontoSerie/",title,".jpg")
-    if (!file.exists(File))  dir.create(dirname(File), showWarnings = FALSE)
-    png(File, width = 1200, height = 800)
-  }
   
-  grid.newpage()
-  grid.draw(table)
   
   if(save){
-    dev.off()
+    ggsave(file=paste("./InterpretazioneDB/confrontoSerie/tabelleDifferenze/",title,".jpg"), grid.draw(table))
+  }else{
+    grid.newpage()
+    grid.draw(table)
   }
   
   
@@ -390,7 +381,7 @@ result <- showErrorConfrontoSerie(dom.arr.ss,dom.arr.db, "Errori Arr Dom Sito vs
 dfDifferenze <- rbind(dfDifferenze, result)
 
 
-plotConfrontoSerie(dom.dep.ss,dom.dep.db.window, "Confronto Dep Dom Sito vs DB", saveFile)
+plotConfrontoSerie(dom.dep.ss,dom.dep.db, "Confronto Dep Dom Sito vs DB", saveFile)
 result <- showErrorConfrontoSerie(dom.dep.ss,dom.dep.db.window, "Errori Dep Dom Sito vs Arrivi DB", dfDifferenze, "Comp Dep Dom"  )
 dfDifferenze <- rbind(dfDifferenze, result)
 
