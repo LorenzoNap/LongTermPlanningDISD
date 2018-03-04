@@ -7,7 +7,14 @@
 # N.B. Esistono alcune destinazioni che devono essere ricontrollate.
 #
 library(RODBC)
-dbhandle <-odbcDriverConnect(connection="Driver={SQL Server};server=DESKTOP-32KTKVV;database=AMs516;trusted_connection=yes;")
+
+source("./parametriConnessioniFile.R")
+
+pathFilePic <- "./AnalisiDatabaseDataMining//PICT//"
+pathFileCSV <- "./AnalisiDatabaseDataMining//"
+
+
+dbhandle <-odbcDriverConnect(connection=param.connessione.db)
 
 rotte <- sqlQuery(dbhandle, 
 "SELECT S_ROUTE.ID
@@ -203,24 +210,32 @@ message('Il valore di distanza per la classe di rotte UNKNOWN erroneamente valut
 rotte.agg2[grep(7, rotte.agg2$FLIGHT_TYPE_ID), ]$distanza <- c(NA)
 
 # GRAFICI SU MAPPAMONDO ---------------------------------------------------
-cartella <- c('PICT')
-ifelse(!dir.exists(file.path(getwd(), cartella)), dir.create(file.path(getwd(), cartella)), FALSE) 
+#cartella <- c('PICT')
+#ifelse(!dir.exists(file.path(getwd(), cartella)), dir.create(file.path(getwd(), cartella)), FALSE) 
 
 #plot(rotte.agg2$distanza, rotte.agg2$FLIGHT_TYPE_ID, main='Route Distance v.s. Flight Type')
 
 #colnames(head(left_join(rotte.agg2, sqlQuery(dbhandle, "SELECT S_FLIGHT_TYPE.ID, S_FLIGHT_TYPE.DESCRIPTION1 FROM [AMS516].[dbo].S_FLIGHT_TYPE"), by=c("FLIGHT_TYPE_ID"="ID"))))
 
 #Eliminiamo le coordinate non affidabili per realizzare i grafici
-rotte.agg3 <- rotte.agg2[-grep("UNKNOWN INTERNATIONAL", rotte.agg2$DESCRIPTION1),] # elimina rotte UNKNOWN INTERNATIONAL
-rotte.agg3 <- rotte.agg3[-grep("UNKNOWN REGIONAL", rotte.agg3$DESCRIPTION1),]      # elimina rotte UNKNOWN REGIONAL
-rotte.agg3 <- rotte.agg3[-grep("UNKNOWN DOMESTIC", rotte.agg3$DESCRIPTION1),]      # elimina rotte UNKNOWN DOMESTIC
+# rotte.agg3 <- rotte.agg2[-grep("UNKNOWN INTERNATIONAL", rotte.agg2$DESCRIPTION1),] # elimina rotte UNKNOWN INTERNATIONAL
+# rotte.agg3 <- rotte.agg3[-grep("UNKNOWN REGIONAL", rotte.agg3$DESCRIPTION1),]      # elimina rotte UNKNOWN REGIONAL
+# rotte.agg3 <- rotte.agg3[-grep("UNKNOWN DOMESTIC", rotte.agg3$DESCRIPTION1),]      # elimina rotte UNKNOWN DOMESTIC
+
+rotte.agg3 <- rotte.agg2[!(rotte.agg2$DESCRIPTION1=="UNKNOWN INTERNATIONAL" 
+                           || rotte.agg2$DESCRIPTION1=="UNKNOWN REGIONAL" 
+                           || rotte.agg2$DESCRIPTION1=="UNKNOWN DOMESTIC"),]
 
 # Grafico 1: tutte le destinazioni/partenze
 map_world <- map_data("world")
 ggplot() +
   geom_polygon(data = map_world, aes(x = long, y = lat, group = group)) +
   geom_point(data = rotte.agg3, aes(x = LON2c, y = LAT2c), color = 'red') 
-dev.print(pdf, './PICT/mappa_citta_raggiungibili.pdf')
+
+ggsave(paste(pathFilePic,"mappa_citta_raggiungibili",".pdf", sep=""))
+ggsave(paste(pathFilePic,"mappa_citta_raggiungibili",".png", sep=""))
+
+# dev.print(pdf, './PICT/mappa_citta_raggiungibili.pdf')
 
 # Grafico 2: tutte le destinazioni/partenze  
 ggplot() +
@@ -228,7 +243,10 @@ ggplot() +
   geom_point(data = rotte.agg3[which(rotte.agg3$FLIGHT_TYPE_ID==1),], aes(x = LON2c, y = LAT2c), color = 'yellow') +
   ggtitle("Reachable Cities by means of Regional Flights (Routes DB)") +
   theme(plot.title = element_text(hjust = 0.5))
-dev.print(pdf, './PICT/mappa_citta_raggiungibili_regionali.pdf')
+
+ggsave(paste(pathFilePic,"mappa_citta_raggiungibili_regionali",".pdf", sep=""))
+ggsave(paste(pathFilePic,"mappa_citta_raggiungibili_regionali",".png", sep=""))
+#dev.print(pdf, './PICT/mappa_citta_raggiungibili_regionali.pdf')
 
 # Grafico 3: tutte le destinazioni/partenze
 ggplot() +
@@ -236,7 +254,11 @@ ggplot() +
   geom_point(data = rotte.agg3[which(rotte.agg3$FLIGHT_TYPE_ID==2),], aes(x = LON2c, y = LAT2c), color = 'blue') +
   ggtitle("Reachable Cities by means of International Flights (Routes DB)") +
   theme(plot.title = element_text(hjust = 0.5))
-dev.print(pdf, './PICT/mappa_citta_raggiungibili_internazionali.pdf')
+
+ggsave(paste(pathFilePic,"mappa_citta_raggiungibili_internazionali",".pdf", sep=""))
+ggsave(paste(pathFilePic,"mappa_citta_raggiungibili_internazionali",".png", sep=""))
+
+#dev.print(pdf, './PICT/mappa_citta_raggiungibili_internazionali.pdf')
 
 # Grafico 4: tutte le destinazioni/partenze
 ggplot() +
@@ -244,7 +266,11 @@ ggplot() +
   geom_point(data = rotte.agg3[which(rotte.agg3$FLIGHT_TYPE_ID==3),], aes(x = LON2c, y = LAT2c), color = 'green') +
   ggtitle("Reachable Cities by means of Domestic Flights (Routes DB)") +
   theme(plot.title = element_text(hjust = 0.5))
-dev.print(pdf, './PICT/mappa_citta_raggiungibili_domestici.pdf')
+
+ggsave(paste(pathFilePic,"mappa_citta_raggiungibili_domestici",".pdf", sep=""))
+ggsave(paste(pathFilePic,"mappa_citta_raggiungibili_regionali",".pdf", sep=""))
+
+#dev.print(pdf, './PICT/mappa_citta_raggiungibili_domestici.pdf')
 
 
 
@@ -253,7 +279,7 @@ dev.print(pdf, './PICT/mappa_citta_raggiungibili_domestici.pdf')
 # Pulizia
 rm(map_world, rotte, rotte.agg, A, B, C, deltaL,DeltaSigma, fi1, fi2, i, Raggio, cartella, rotte.agg3)
 
-write.csv(rotte.agg2, file = "rotte.agg2.csv") # flag per esportare i dati
+write.csv(rotte.agg2, file = paste(pathFileCSV,"rotte.agg2.csv",sep="")) # flag per esportare i dati
 
 # # CORREZIONE DISTANZE PER ROTTE "UNKOWN" (dom, reg, int) ------------------
 # #
@@ -286,7 +312,11 @@ ggplot(data=left_join(rotte.agg2, sqlQuery(dbhandle, "SELECT S_FLIGHT_TYPE.ID, S
   labs(y="Distance", x="") +
   ggtitle("Routes Distances by Categories defined as Flight Type (Routes DB)") +
   theme(plot.title = element_text(hjust = 0.5))
-dev.print(pdf, './PICT/distanza_categorie_db_rotte.pdf')
 
-dev.off() # rimuovi tutti i grafici
+ggsave(paste(path,"distanza_categorie_db_rotte",".pdf", sep=""))
+
+
+# dev.print(pdf, './PICT/distanza_categorie_db_rotte.pdf')
+# 
+# dev.off() # rimuovi tutti i grafici
 

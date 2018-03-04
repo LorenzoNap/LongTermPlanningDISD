@@ -5,12 +5,12 @@ source("AnalisiSerieStoriche\\AnalisiSerieStoriche.R", echo = TRUE)
 
 #Modulo3 - Analisi DataBaseMining
 source("AnalisiDatabaseDataMining\\main.R", echo = TRUE)
-#Modulo3 - Analisi regressioneLineare
-source("AnalisiDatabaseDataMining\\AnalisiRegressioneLineare\\voli_vs_rotte.R", echo = TRUE)
+#Modulo3.1 - Analisi DataBaseMining/RegressioneLineare #non trovo il file
+source("AnalisiDatabaseDataMining\\AnalisiRegressioneLineare\\regressione_lineare_aerei_vs_km_vs_flight_type.R")
 
 
 
-#clustering
+#Modulo3.2 - Cluster analysis
 source("ClusterAnalysis\\clustering_aerei_vs_km.R", echo = TRUE)
-#analisi da clustering
+#Modulo3.2 - Analisi Serie Storiche
 source("NuovaAnalisiDaCluster\\time_series_analysis_from_clusters.R", echo = TRUE)
