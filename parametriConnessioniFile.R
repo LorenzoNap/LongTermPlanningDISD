@@ -7,3 +7,5 @@ param.connessione.db <- "Driver={SQL Server};server=DESKTOP-HH30FVF;database=AMs
 
 #File
 param.file.voliStatisticheSito.csv <- "InterpretazioneDB/voli_dec_2017.CSV"
+#Fle
+param.file.seriePetrolioEGdp.csv <- "AnalisiSerieStoriche/Statistiche2003.xlsx"
