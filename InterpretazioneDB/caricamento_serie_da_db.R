@@ -133,7 +133,7 @@ reg.arr.ss <- ts(serie.storica$Regional_ARR, frequency=12, start=startDateSito, 
 reg.dep.ss <- ts(serie.storica$Regional_DEP, frequency=12, start=startDateSito, end=endDateSito)
 int.arr.ss <- ts(serie.storica$International_ARR, frequency=12, start=startDateSito, end=endDateSito)
 int.dep.ss <- ts(serie.storica$International_DEP, frequency=12, start=startDateSito, end=endDateSito)
-dom.arr.ss <- ts(serie.storica$Domestic_ARR, frequency=12, start=c(2012,5), end=endDateSito) # non capisco perchè è sfasato
+dom.arr.ss <- ts(serie.storica$Domestic_ARR, frequency=12, start=c(2012,5), end=endDateSito) # non capisco perch? ? sfasato
 dom.dep.ss <- ts(serie.storica$Domestic_DEP, frequency=12, start=startDateSito, end=endDateSito)
 
 

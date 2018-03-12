@@ -2,6 +2,8 @@
 source("InterpretazioneDB\\caricamento_serie_da_db.R", echo = TRUE)
 #Modulo2 - Interpretazione db
 source("AnalisiSerieStoriche\\AnalisiSerieStoriche.R", echo = TRUE)
+#Modulo2.1 - Interpretazione db - Serie Covariate
+source("AnalisiSerieStoriche\\AnalisiSerieStoricheCovariate.R", echo = TRUE)
 
 #Modulo3 - Analisi DataBaseMining
 source("AnalisiDatabaseDataMining\\main.R", echo = TRUE)
