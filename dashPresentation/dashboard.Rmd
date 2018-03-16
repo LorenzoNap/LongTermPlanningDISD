@@ -1,0 +1,152 @@
+---
+title: "JNB"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+---
+
+```{r include=FALSE, cache=FALSE}
+library(dygraphs)
+library(flexdashboard)
+library(plotly)
+library(Hmisc)
+library(leaflet)
+
+serie.storica <- read.csv2("voli_dec_2017.CSV", header= TRUE)
+# Pulisci la serie da quello che non serve.
+serie.storica <- serie.storica[1:69,]
+startDateSito <- c(2012,4)
+endDateSito <- c(2017,3)
+# Trasforma in serie storiche con  start date e end date uguale al db
+reg.arr.ss <- ts(serie.storica$Regional_ARR, frequency=12, start=startDateSito, end=endDateSito)
+reg.dep.ss <- ts(serie.storica$Regional_DEP, frequency=12, start=startDateSito, end=endDateSito)
+int.arr.ss <- ts(serie.storica$International_ARR, frequency=12, start=startDateSito, end=endDateSito)
+int.dep.ss <- ts(serie.storica$International_DEP, frequency=12, start=startDateSito, end=endDateSito)
+dom.arr.ss <- ts(serie.storica$Domestic_ARR, frequency=12, start=c(2012,5), end=endDateSito) # non capisco perch? ? sfasato
+dom.dep.ss <- ts(serie.storica$Domestic_DEP, frequency=12, start=startDateSito, end=endDateSito)
+
+``` 
+
+Statistiche Voli
+===================================== 
+
+Row {data-height=650}
+-------------------------------------
+
+### Percentuali
+```{r}
+drops <- drops <- c("X","Total_ARR", "Total_DEP")
+serie.storica.temps <- serie.storica[ , !(names(serie.storica) %in% drops)]
+
+total <- data.frame("Categorie"=c("Unscheduled","Domestic", "Regional", "International"),
+                    "NumeroVoli"=c(sum(serie.storica.temps$Unscheduled_ARR) + sum(serie.storica.temps$Unscheduled_DEP),
+                           sum(serie.storica.temps$Domestic_ARR) + sum(serie.storica.temps$Domestic_DEP),
+                           sum(serie.storica.temps$Regional_ARR) + sum(serie.storica.temps$Regional_ARR),
+                           sum(serie.storica.temps$International_ARR) + sum(serie.storica.temps$International_DEP)
+                          ))
+data <- total[,c('Categorie', 'NumeroVoli')]
+
+
+# USPersonalExpenditure <- data.frame("Categorie"=rownames(USPersonalExpenditure), USPersonalExpenditure)
+# data <- USPersonalExpenditure[,c('Categorie', 'X1960')]
+
+p <- plot_ly(data, labels = ~Categorie, values = ~NumeroVoli, type = 'pie',
+             textposition = 'inside',
+        textinfo = 'label+percent',
+        insidetextfont = list(color = '#FFFFFF'),
+        hoverinfo = 'text',
+        text = ~paste('Numero voli:', NumeroVoli),
+        marker = list(colors = colors,
+                      line = list(color = '#FFFFFF', width = 1))
+             ) %>%
+  layout(
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+p
+# Create a shareable link to your chart
+# Set up API credentials: https://plot.ly/r/getting-started
+# chart_link = api_create(p, filename="pie/basic")
+# chart_link
+```
+
+
+### Mappa Voli
+
+```{r}
+library(maps)
+mapStates = map("world", fill = TRUE, plot = FALSE)
+leaflet(data = mapStates) %>% addTiles() %>%
+  addPolygons(fillColor = topo.colors(10, alpha = NULL), stroke = FALSE) 
+
+# gauge(50, min = 0, max = 100, symbol = '%', gaugeSectors(
+#   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+# ))
+# 
+# gauge(50, min = 0, max = 50, gaugeSectors(
+#   success = c(41, 50), warning = c(21, 40), danger = c(0, 20)
+# ))
+# 
+# gauge(50, min = 0, max = 10, gaugeSectors(
+#   success = c(0, 2), warning = c(3, 6), danger = c(7, 10)
+# ))
+```
+
+
+Row {.tabset .tabset-fade}
+-------------------------------------
+    
+   
+### Regionali Arrivo
+
+```{r}
+dygraph(reg.dep.ss)
+```   
+ 
+### Regionali Partenze
+    
+```{r}
+dygraph(reg.arr.ss)
+```
+
+
+### Internazionali Arrivo
+    
+```{r}
+dygraph(int.arr.ss)
+```
+    
+### Internazionali Partenze
+
+```{r}
+dygraph(int.dep.ss)
+```
+
+
+### Domestici Arrivo
+    
+```{r}
+dygraph(dom.arr.ss)
+
+```
+    
+### Domestici Partenze
+
+```{r}
+dygraph(dom.dep.ss)
+
+```
+
+
+
+Previsioni
+=====================================     
+
+### Chart 1
+    
+```{r}
+```
+    
+### Chart 2
+
+```{r}
+```
