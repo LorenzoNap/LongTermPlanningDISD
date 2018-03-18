@@ -3,6 +3,7 @@ title: "JNB"
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
+    css: style.css
 runtime: shiny
 ---
 
@@ -16,7 +17,13 @@ library(Hmisc)
 library(leaflet)
 library(htmlwidgets)
 library(shiny)
+library(datasets)
 
+library(forecast)
+library(shinycssloaders)
+library(DT)
+library(xtable)
+library(pander)
 total <- data.frame("Categorie"=c("Regionali","Internazionali", "Domestici"),
                     "NumeroVoli"=c(
                       sum(reg.arr.aflight$CONTO) + sum(reg.dep.aflight$CONTO),
@@ -179,12 +186,135 @@ dygraph(dom.dep.db)
 Previsioni
 =====================================     
 
-### Chart 1
-    
-```{r}
-```
-    
-### Chart 2
+
+Inputs {.sidebar}
+-------------------------------------
 
 ```{r}
+selectInput("tipoVoli", label = "Tipo di voli:",
+            choices = c("Domestici", "Regionali", "Internazionali"), selected = "Domestici")
+
+radioButtons("dist", "Tipo:",
+               c("Arrivi" = "arr",
+                 "Partenze" = "partenze",
+                 "Tutti" = "tutti"))
+
+
+sliderInput("anni", label = "Tempo (Anni):",
+            min = 1, max = 10, value = 1, step = 1)
+
+actionButton("run", "Run Analysis", icon("paper-plane"), 
+    style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
 ```
+
+
+Row
+-------------------------------------
+
+### Grafico Previsioni
+    
+```{r}
+  v <- reactiveValues(doPlot = FALSE)
+  x <- reactiveValues(doTable = NULL)
+
+observeEvent(input$run, {
+    # 0 will be coerced to FALSE
+    # 1+ will be coerced to TRUE
+    v$doPlot <- input$run
+    x$doTable <- FALSE
+  })
+
+renderDygraph({
+    if (v$doPlot == FALSE) return()
+  
+    withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 2
+        incProgress(1/n, detail = paste("Calcolo Arima"))
+        tWindow <- input$anni * 12
+        arimaMod <- auto.arima(dom.arr.db)
+        incProgress(2/n, detail = paste("Predizioni Arima"))
+        arimaMod.Fr <- forecast(arimaMod, h = tWindow)
+      })
+    if(input$tipoVoli == 'Domestici'){
+      # autoplot(arimaMod.Fr, main  = "Predizioni Arima")
+      # dygraph(arimaMod.Fr$mean, main = "Predicted Lung Deaths (UK)")
+      # ggseasonplot(dom.arr.db, main=paste(sep="","Seasonal Plot "))
+      
+      gen_array <- function(forecast_obj){
+
+        actuals <- forecast_obj$x
+        lower <- forecast_obj$lower[,2]
+        upper <- forecast_obj$upper[,2]
+        point_forecast <- forecast_obj$mean
+      
+        cbind(actuals, lower, upper, point_forecast)
+      }
+      x$doTable <- arimaMod.Fr
+      ts_array <- gen_array(arimaMod.Fr)
+      dygraph(ts_array, main = "graph_title") %>% 
+      dyRangeSelector() %>%
+      # dyRangeSelector(height = 40,
+      #                 dateWindow = c("2011-04-01", "2019-4-01")) %>%
+      dySeries(name = "actuals", label = "actual") %>%
+      dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
+      dyLegend(show = "always", hideOnMouseOut = FALSE) %>%
+      dyHighlight(highlightCircleSize = 5,
+                  highlightSeriesOpts = list(strokeWidth = 2)) %>%
+      dyOptions(axisLineColor = "navy", gridLineColor = "grey")
+      
+            
+
+      
+    }
+})
+
+
+# randomVals <- eventReactive(input$run, {
+#     runif(input$bw_adjust)
+#   
+#   
+#   })
+# 
+#   renderPlot({
+#     hist(randomVals())
+#   })
+
+
+
+# renderPlot({
+#   hist(faithful[, 2], breaks = input$bw_adjust)
+# })
+
+```
+  
+Row {data-height=500}
+-------------------------------------
+
+   
+### Tabella Previsioni  
+
+```{r}
+
+renderTable({
+  if(is.null(x$doTable)) return()
+  head( xtable(x$doTable$mean, digits = 0), n = 6 )
+  
+#   temp.table <- xtable(x$doTable$mean, digits = 0)
+# panderOptions('table.split.table', Inf)
+# panderOptions('digits', 4)
+# pander(temp.table, style = "grid", missing = '')
+# temp.table
+}, rownames = TRUE)
+
+
+
+#datatable(iris, options = list(pageLength = 5))
+```
+
+### Percentuali 
+
+
+Rifornimenti
+=====================================  
+
