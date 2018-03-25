@@ -261,3 +261,77 @@ gen_array <- function(forecast_obj){
   
   cbind(actuals, lower, upper, point_forecast)
 }
+
+
+
+chooseTimeSeries <- function(tipoVolo, tipologia){
+  if(tipoVolo == 'Domestici'){
+    # prendi la tipologia
+    if(tipologia == 'arr'){
+      return (dom.arr.db)
+    }
+    else if(tipologia == 'partenze'){
+      return (dom.dep.db)
+    }
+    else { #tutti
+      return (ts( dom.arr.aflight$CONTO + dom.dep.aflight$CONTO, frequency=12, start=startSeriesDB))
+    }
+    
+  } else if (tipoVolo == 'Regionali'){
+
+    if(tipologia == 'arr'){
+      return (reg.arr.db)
+    }
+    else if(tipologia == 'partenze'){
+      return (reg.dep.db)
+    }
+    else { #tutti
+      return (ts( reg.arr.aflight$CONTO + reg.dep.aflight$CONTO, frequency=12, start=startSeriesDB))
+    }
+    
+  } else if (tipoVolo == 'Internazionali'){
+    if(tipologia == 'arr'){
+      return (int.arr.db)
+    }
+    else if(tipologia == 'partenze'){
+      return (int.dep.db)
+    }
+    else { #tutti
+      return (ts(int.arr.aflight$CONTO + int.dep.aflight$CONTO, frequency=12, start=startSeriesDB))
+    }
+  }
+}
+
+
+createDataSetClustering <- function(){
+  
+  voli_rotte2 <- read_csv("./dashPresentation/voli_rotte2.csv.csv", 
+                          col_types = cols(X1 = col_skip()))
+  
+  average <- data.frame(cbind(
+    c(mean(voli_rotte2[grep("1", voli_rotte2$FLIGHT_TYPE_ID.x),]$MTOW), 
+      mean(voli_rotte2[grep("2", voli_rotte2$FLIGHT_TYPE_ID.x),]$MTOW),
+      mean(voli_rotte2[grep("3", voli_rotte2$FLIGHT_TYPE_ID.x),]$MTOW)),
+    c(mean(na.omit((voli_rotte2[grep("1", voli_rotte2$FLIGHT_TYPE_ID.x),]$distanza))),
+      mean(na.omit((voli_rotte2[grep("2", voli_rotte2$FLIGHT_TYPE_ID.x),]$distanza))),
+      mean(na.omit((voli_rotte2[grep("3", voli_rotte2$FLIGHT_TYPE_ID.x),]$distanza))))),
+    row.names = c("Regional","International","Domestic"))
+  colnames(average) <- c("MTOW","Distance")
+  
+  voli_rotte_clean <- na.omit(voli_rotte2[ , c("MTOW","distanza")])
+  voli_rotte_clean_sd <- voli_rotte_clean[!duplicated(voli_rotte_clean), ]
+  voli_rotte_clean_sd$MTOW <- (voli_rotte_clean_sd$MTOW - mean(voli_rotte_clean_sd$MTOW))/(2*sd(voli_rotte_clean_sd$MTOW))
+  voli_rotte_clean_sd$distanza <- (voli_rotte_clean_sd$distanza - mean(voli_rotte_clean_sd$distanza))/(2*sd(voli_rotte_clean_sd$distanza))
+  
+}
+
+doClustering <- function(nClust, dataSet) {
+ 
+  
+  
+  km <- kmeans(dataSet, centers = nClust, nstart = 100)
+  
+  return (km)
+  
+}
+

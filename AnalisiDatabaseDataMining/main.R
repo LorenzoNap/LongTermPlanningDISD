@@ -8,7 +8,7 @@ source("AnalisiDatabaseDataMining\\rotte2.R", echo = TRUE)
 # 
 # Ottenute le rotte, si fa il join tre i voli e le rotte
 # - rilascia in output voli_rotte2
-source("AnalisiDatabaseDataMining\\voli_vs_rotte.R")
+source("AnalisiDatabaseDataMining\\voli_vs_rotte.R", echo = TRUE)
 #
 # Modello di regressione lineare
 # - ha in input voli_rotte2

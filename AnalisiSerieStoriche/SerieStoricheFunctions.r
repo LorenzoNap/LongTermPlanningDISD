@@ -17,17 +17,24 @@ plotTimeseries <- function(tserie, title, path, save = TRUE) {
   # Args:
   #   tserie: serie storica in formato ts
   #   tittle: titolo da visualizzare nel plot
+  theme_set(theme_bw())
+  df <- data.frame(Y=as.matrix(tserie), date=as.Date(as.yearmon(time(tserie))))
+  
+  ggplot(df, aes(x=date)) + 
+    geom_line(aes(y=Y, color="Voli")) + 
+    labs(title=title, 
+         subtitle=paste("Serie Storica",title),
+         color=NULL) +  # title and caption
+    scale_x_date(date_labels="%b %Y", date_breaks  ="4 month") +  # change to monthly ticks and labels
+    scale_colour_manual(name="Serie",
+                        values=c("#00ba38", "#f8766d")) +  # line color
+    theme(axis.text.x = element_text(angle = 90, vjust=0.5, size = 8),  # rotate x axis text
+          panel.grid.minor = element_blank())
+  
   
   if(save){
-    File <- paste(path,title,".jpg", sep="")
-    if (!file.exists(File))  dir.create(dirname(File), showWarnings = FALSE)
-    png(File,width = 1200, height = 800)
-  }
+    ggsave(paste(path,title,".jpg", sep=""))
   
-  plot(tserie, col="darkblue", main=title)
-  
-  if(save){
-    dev.off()
   }
   
   ggseasonplot(tserie, main=paste(sep="","Seasonal Plot ",title))
@@ -79,7 +86,7 @@ plotForecastTrainingSet <- function(tserie, tWindow = 36, title, path, save = TR
     geom_line(data=dfnaiveMethod, aes(date, Y,  color="Drift Method"), size = 0.5)+
     geom_line(data=dfdriftMethod, aes(date, Y,  color="SeasonalMaive Method"), size = 0.5)+
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
-    geom_line(data=dfSr, aes(date, Y,  color="Test Set"), size = 1.0)+
+    geom_line(data=dfSr, aes(date, Y,  color="Test Set"), size = 0.5)+
     labs(title=title, 
          subtitle = "Pedizioni Dopo Training Set",
          y="Numero voli", x = "Data")+
@@ -96,7 +103,7 @@ plotForecastTrainingSet <- function(tserie, tWindow = 36, title, path, save = TR
     geom_line(data=dfnaiveMethod, aes(date, Y,  color="Drift Method"), size = 0.5)+
     geom_line(data=dfdriftMethod, aes(date, Y,  color="SeasonalMaive Method"), size = 0.5)+
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
-    geom_line(data=dfSer, aes(date, Y,  color="Test Set"), size = 1.0)+
+    geom_line(data=dfSer, aes(date, Y,  color="Test Set"), size = 0.5)+
     labs(title=title, 
          subtitle = "Confronto Predizioni su Test Set",
          y="Numero voli", x = "Data")+
@@ -131,11 +138,11 @@ plotForecastTrainingSet <- function(tserie, tWindow = 36, title, path, save = TR
     geom_line(data=dfnaiveMethod, aes(date, Y,  color="Drift Method"), size = 0.5)+
     geom_line(data=dfdriftMethod, aes(date, Y,  color="SeasonalMaive Method"), size = 0.5)+
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
-    geom_line(data=dfSerie, aes(date, Y,  color="Test Set"), size = 1.0)+
+    geom_line(data=dfSerie, aes(date, Y,  color="Test Set"), size = 0.5)+
     labs(title=title, 
          subtitle = "Confronto Predizioni su serie completa",
          y="Numero voli", x = "Data")+
-    geom_vline(xintercept = as.numeric(as.Date("2017-03-01")),color="red" ,size = 1.0,linetype=4)+
+    geom_vline(xintercept = as.numeric(as.Date("2017-03-01")),color="red" ,size = 0.5,linetype=4)+
     scale_colour_manual(name="Metodi",
                         values=c("purple", "red", "green", "orange", "brown2","blue"))
   
@@ -171,7 +178,7 @@ plotArimaModel <- function(tserie, tWindow, title, path, save = TRUE){
   
   ggplot() +
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
-    geom_line(data=dfAllSeries, aes(date, Y,  color="Test Set"), size = 1.0)+
+    geom_line(data=dfAllSeries, aes(date, Y,  color="Test Set"), size = 0.5)+
     labs(title=paste("Confronto Arima su Training Set",title), 
          subtitle = arimaMod.Fr$method,
          y="Numero voli", x = "Data")+
@@ -186,7 +193,7 @@ plotArimaModel <- function(tserie, tWindow, title, path, save = TRUE){
  
   ggplot() +
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
-    geom_line(data=dftestData, aes(date, Y,  color="Test Set"), size = 1.0)+
+    geom_line(data=dftestData, aes(date, Y,  color="Test Set"), size = 0.5)+
     labs(title=paste("Confronto Arima su Test Set",title), 
          subtitle = arimaMod.Fr$method,
          y="Numero voli", x = "Data")+
@@ -206,11 +213,11 @@ plotArimaModel <- function(tserie, tWindow, title, path, save = TRUE){
   
   ggplot() +
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
-    geom_line(data=dfSerie, aes(date, Y,  color="Serie Completa"), size = 1.0)+
+    geom_line(data=dfSerie, aes(date, Y,  color="Serie Completa"), size = 0.5)+
     labs(title=paste("Confronto Arima su Serie Completa",title), 
          subtitle = arimaMod.Fr$method,
          y="Numero voli", x = "Data")+
-    geom_vline(xintercept = as.numeric(as.Date("2017-03-01")),color="red" ,size = 1.0,linetype=4)+
+    geom_vline(xintercept = as.numeric(as.Date("2017-03-01")),color="red" ,size = 0.5,linetype=4)+
     scale_colour_manual(name="Metodi",
                         values=c("red", "blue"))
   

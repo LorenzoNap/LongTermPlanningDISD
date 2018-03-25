@@ -313,7 +313,7 @@ ggplot(data=left_join(rotte.agg2, sqlQuery(dbhandle, "SELECT S_FLIGHT_TYPE.ID, S
   ggtitle("Routes Distances by Categories defined as Flight Type (Routes DB)") +
   theme(plot.title = element_text(hjust = 0.5))
 
-ggsave(paste(path,"distanza_categorie_db_rotte",".pdf", sep=""))
+ggsave(paste(pathFilePic,"distanza_categorie_db_rotte",".pdf", sep=""))
 
 
 # dev.print(pdf, './PICT/distanza_categorie_db_rotte.pdf')
