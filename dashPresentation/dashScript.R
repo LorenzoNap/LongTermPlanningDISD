@@ -103,9 +103,8 @@ createMap <- function(){
                     join S_AIRPORT as ARR  on ARR.ID=S_ROUTE.PORT_AIRPORT_ID
                     join S_AIRPORT as PAR on PAR.ID=S_ROUTE.HOME_AIRPORT_ID")
   
-  library(tidyverse)
-  
-  library(sp) # per convertire i gradi gps a decimali
+  library(tidyr)
+  library(dplyr) # per convertire i gradi gps a decimali
   rotte <- mutate(rotte, 
                   LAT1c=LAT1 %>%
                     sub(':', 'd', .) %>%
@@ -334,4 +333,6 @@ doClustering <- function(nClust, dataSet) {
   return (km)
   
 }
+
+
 

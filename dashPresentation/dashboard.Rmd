@@ -10,6 +10,7 @@ runtime: shiny
 ```{r include=FALSE, cache=FALSE}
 source("../parametriConnessioniFile.R")
 source("dashScript.R")
+library(readxl)
 library(dygraphs)
 library(flexdashboard)
 library(plotly)
@@ -24,6 +25,7 @@ library(shinycssloaders)
 library(DT)
 library(xtable)
 library(pander)
+library(readr)
 library("highcharter")
 total <- data.frame("Categorie"=c("Regionali","Internazionali", "Domestici"),
                     "NumeroVoli"=c(
@@ -418,22 +420,40 @@ renderPlotly({
   
   incProgress(2/n, detail = paste("Puslisco DataSet"))
   
-        voli_rotte_clean <- na.omit(voli_rotte2[ , c("MTOW","distanza")])
+        voli_rotte_clean <- na.omit(voli_rotte2[ , c("MTOW","distanza","ID")])
   voli_rotte_clean_sd <- voli_rotte_clean[!duplicated(voli_rotte_clean), ]
   voli_rotte_clean_sd$MTOW <- (voli_rotte_clean_sd$MTOW - mean(voli_rotte_clean_sd$MTOW))/(2*sd(voli_rotte_clean_sd$MTOW))
   voli_rotte_clean_sd$distanza <- (voli_rotte_clean_sd$distanza - mean(voli_rotte_clean_sd$distanza))/(2*sd(voli_rotte_clean_sd$distanza))
     
-  voli_rotte_clean_sd <- na.omit(voli_rotte_clean_sd[ , c("MTOW","distanza")])
+  voli_rotte_clean_sd <- na.omit(voli_rotte_clean_sd[ , c("MTOW","distanza","ID")])
   
+  voli_rotte_clean_temp <- na.omit(voli_rotte_clean_sd[ , c("MTOW","distanza")])
     incProgress(3/n, detail = paste("Calcolo Cluster"))
 
     set.seed(1237)
      numCluster <- input$cluster
 
-   km <- kmeans(voli_rotte_clean_sd, centers = numCluster, nstart = 25)
+   km <- kmeans(voli_rotte_clean_temp, centers = numCluster, nstart = 25)
       })
   
-  z$doTable <- input$cluster
+  
+
+  mappa_cluster <- cbind(na.omit(voli_rotte_clean_sd)$ID,cbind( km$cluster))
+  colnames(mappa_cluster) <- c("ID", "CLUSTER")
+  
+  dep_joined <- read_csv("deep_joined.csv", 
+                          col_types = cols(X1 = col_skip(), CLUSTER= col_skip()))
+  
+  dep_joined <- left_join(dep_joined,as.data.frame(mappa_cluster),by=c("DEP_FLIGHT_ID"="ID"))
+  
+  # for (i in seq(1,numCluster)){
+  #   temp <- dep_joined %>% filter(CLUSTER == i)
+  #   temp$STO <- format(temp$STO, format="%Y-%m")
+  #   df <- as.data.frame(table(temp$STO))
+  #   tserie <- ts(df[,-1], frequency=12, start=c(2003,4), end=c(2017,3))
+  # }
+  
+  z$doTable <- tserie
       
   
   set.seed(1237)
@@ -458,17 +478,40 @@ Row {.tabset .tabset-fade}
 -------------------------------------
 ### Prova    
 ```{r}
-    renderTable({
-  if(is.null(z$doTable)) return()
-      print(z$doTable)
-      if( z$doTable >= 4){
-          head( xtable(mtcars, digits = 0), n = 6 )
-      }
+  renderDygraph({
+    if ( is.null(z$doTable) == TRUE) return()
   
-#   temp.table <- xtable(x$doTable$mean, digits = 0)
-# panderOptions('table.split.table', Inf)
-# panderOptions('digits', 4)
-# pander(temp.table, style = "grid", missing = '')
-# temp.table
-}, rownames = TRUE)
+    tSerie <- z$doTable
+  
+    withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 2
+        incProgress(1/n, detail = paste("Calcolo Arima"))
+        tWindow <- 3 * 12
+        arimaMod <- auto.arima(tSerie)
+        incProgress(2/n, detail = paste("Predizioni Arima"))
+        arimaMod.Fr <- forecast(arimaMod, h = tWindow)
+      })
+  
+      
+      gen_array <- function(forecast_obj){
+
+        actuals <- forecast_obj$x
+        lower <- forecast_obj$lower[,2]
+        upper <- forecast_obj$upper[,2]
+        point_forecast <- forecast_obj$mean
+      
+        cbind(actuals, lower, upper, point_forecast)
+      }
+      ts_array <- gen_array(arimaMod.Fr)
+      dygraph(ts_array) %>% 
+      dyRangeSelector() %>%
+      dySeries(name = "actuals", label = "actual") %>%
+      dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
+      dyLegend(show = "always", hideOnMouseOut = FALSE) %>%
+      dyHighlight(highlightCircleSize = 5,
+                  highlightSeriesOpts = list(strokeWidth = 2)) %>%
+      dyOptions(axisLineColor = "navy", gridLineColor = "grey")
+
+})
 ```
