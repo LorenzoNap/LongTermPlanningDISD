@@ -109,20 +109,45 @@ p
 
 ```{r}
 library(leaflet)
+library(geosphere)
+library(sp)
 
-
-  
-  greenLeafIcon <- makeIcon(
+renderLeaflet({
+   greenLeafIcon <- makeIcon(
     iconUrl = "http://icons.iconarchive.com/icons/paomedia/small-n-flat/96/map-marker-icon.png",
-    iconWidth = 20, iconHeight = 20
+    iconWidth = 10, iconHeight = 10
 
   )
+  latTambo <- -26.134789
+  lonTambo <- 28.240528
   
-  m <- leaflet(data = rotte.agg3) %>% addTiles() %>%
-    addMarkers(~LON2c, ~LAT2c, popup = ~as.character(DESCRIPTION1),
+  vector <- vector(mode='list', length = nrow(rotte.agg3))
+  for (row in 1:nrow(rotte.agg3)) {
+    lon <- rotte.agg3[row, "LON2c"]
+    lat  <- rotte.agg3[row, "LAT2c"]
+   inter1 <- gcIntermediate(c(lonTambo, latTambo), c(lon, lat), n=200,      addStartEnd=TRUE, sp = TRUE, breakAtDateLine = TRUE)
+   vector[row] <- inter1
+  }
+  
+  
+  ll0 <- lapply( vector , function(x) `@`(x , "lines") )
+ll1 <- lapply( unlist( ll0 ) , function(y) `@`(y,"Lines") )
+Sl <- SpatialLines( list( Lines( unlist( ll1 ) , ID = 1 ) ) )
+
+m <- leaflet(Sl)  %>% addTiles() %>% addPolylines(color="red", weight=0.5) %>%  setView(lonTambo, latTambo, zoom = 3) %>%
+    addMarkers(data = rotte.agg3,~LON2c, ~LAT2c, popup = ~as.character(DESCRIPTION1),
                icon =greenLeafIcon
                , label = ~as.character(DESCRIPTION1))
   m
+  
+})
+  
+ 
+  # m <- leaflet(data = rotte.agg3) %>% addTiles() %>%
+  #   addMarkers(~LON2c, ~LAT2c, popup = ~as.character(DESCRIPTION1),
+  #              icon =greenLeafIcon
+  #              , label = ~as.character(DESCRIPTION1))
+  # m
 
 # gauge(50, min = 0, max = 100, symbol = '%', gaugeSectors(
 #   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
