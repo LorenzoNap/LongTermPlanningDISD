@@ -18,12 +18,13 @@ library(leaflet)
 library(htmlwidgets)
 library(shiny)
 library(datasets)
-
+library(zoo)
 library(forecast)
 library(shinycssloaders)
 library(DT)
 library(xtable)
 library(pander)
+library("highcharter")
 total <- data.frame("Categorie"=c("Regionali","Internazionali", "Domestici"),
                     "NumeroVoli"=c(
                       sum(reg.arr.aflight$CONTO) + sum(reg.dep.aflight$CONTO),
@@ -192,9 +193,9 @@ Inputs {.sidebar}
 
 ```{r}
 selectInput("tipoVoli", label = "Tipo di voli:",
-            choices = c("Domestici", "Regionali", "Internazionali"), selected = "Domestici")
+            choices = c("Domestici", "Regionali", "Internazionali"), selected = "Regionali")
 
-radioButtons("dist", "Tipo:",
+radioButtons("tipo", "Tipo:",
                c("Arrivi" = "arr",
                  "Partenze" = "partenze",
                  "Tutti" = "tutti"))
@@ -214,32 +215,42 @@ Row
 ### Grafico Previsioni
     
 ```{r}
-  v <- reactiveValues(doPlot = FALSE)
-  x <- reactiveValues(doTable = NULL)
+v <- reactiveValues(doPlot = FALSE)
+x <- reactiveValues(doTable = NULL)
 
 observeEvent(input$run, {
     # 0 will be coerced to FALSE
     # 1+ will be coerced to TRUE
     v$doPlot <- input$run
     x$doTable <- FALSE
+    x$doStats <- FALSE
   })
 
 renderDygraph({
     if (v$doPlot == FALSE) return()
+  
+    tSerie <- chooseTimeSeries(input$tipoVoli, input$tipo)
   
     withProgress(message = 'Operazioni', value = 0,  {
         # Number of times we'll go through the loop
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- input$anni * 12
-        arimaMod <- auto.arima(dom.arr.db)
+        arimaMod <- auto.arima(tSerie)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
       })
-    if(input$tipoVoli == 'Domestici'){
+    
       # autoplot(arimaMod.Fr, main  = "Predizioni Arima")
       # dygraph(arimaMod.Fr$mean, main = "Predicted Lung Deaths (UK)")
       # ggseasonplot(dom.arr.db, main=paste(sep="","Seasonal Plot "))
+    
+      # dfMeanMethod <- data.frame(Y=as.matrix(arimaMod.Fr$mean), date=as.Date(as.yearmon(time(arimaMod.Fr$mean))))
+      # tSerieDF <- data.frame(Y=as.matrix(tSerie), date=as.Date(as.yearmon(time(tSerie))))
+      # mean1 <- mean(dfMeanMethod$Y)
+      # mean2 <- mean(tSerieDF$Y)
+      # 
+      # x$doStats <- ( (mean2[1]/ mean1[1]) * 100) - 100
       
       gen_array <- function(forecast_obj){
 
@@ -252,7 +263,7 @@ renderDygraph({
       }
       x$doTable <- arimaMod.Fr
       ts_array <- gen_array(arimaMod.Fr)
-      dygraph(ts_array, main = "graph_title") %>% 
+      dygraph(ts_array) %>% 
       dyRangeSelector() %>%
       # dyRangeSelector(height = 40,
       #                 dateWindow = c("2011-04-01", "2019-4-01")) %>%
@@ -263,10 +274,9 @@ renderDygraph({
                   highlightSeriesOpts = list(strokeWidth = 2)) %>%
       dyOptions(axisLineColor = "navy", gridLineColor = "grey")
       
-            
-
       
-    }
+      
+
 })
 
 
@@ -288,7 +298,7 @@ renderDygraph({
 
 ```
   
-Row {data-height=500}
+Row 
 -------------------------------------
 
    
@@ -312,9 +322,128 @@ renderTable({
 #datatable(iris, options = list(pageLength = 5))
 ```
 
-### Percentuali 
+<!-- ### Regionali {.value-box} -->
+<!-- ```{r} -->
+<!-- # dlCount is a reactive expression that keeps track of the total -->
+<!-- # number of rows that have ever appeared through pkgStream. -->
+
+
+<!-- # Emit the download count -->
+<!-- renderValueBox({ -->
+<!--    if(is.null(x$doStats)) return() -->
+<!--   valueBox(paste(x$doStats,"%"), icon = "fa-plane", color = "success") -->
+<!-- }) -->
+<!-- ``` -->
 
 
 Rifornimenti
 =====================================  
 
+
+Inputs {.sidebar}
+-------------------------------------
+
+```{r}
+y <- reactiveValues(doPlot = FALSE)
+z <- reactiveValues(doTable = NULL)
+
+observeEvent(input$runCluster, {
+    # 0 will be coerced to FALSE
+    # 1+ will be coerced to TRUE
+    y$doPlot <- input$runCluster
+  })
+
+sliderInput("cluster", label = "Numero Cluster",
+            min = 1, max = 5, value = 1, step = 1)
+
+actionButton("runCluster", "Run Analysis", icon("paper-plane"),
+    style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+```
+
+
+Row 
+-------------------------------------
+
+   
+### Clustering 
+
+```{r}
+renderPlotly({
+  if (y$doPlot == FALSE) return()
+  
+  
+  withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 3
+        incProgress(1/n, detail = paste("Calcolo DataSet"))
+      
+         voli_rotte2 <- read_csv("voli_rotte2.csv.csv", 
+                          col_types = cols(X1 = col_skip()))
+
+
+  average <- data.frame(cbind(
+    c(mean(voli_rotte2[grep("1", voli_rotte2$FLIGHT_TYPE_ID.x),]$MTOW), 
+      mean(voli_rotte2[grep("2", voli_rotte2$FLIGHT_TYPE_ID.x),]$MTOW),
+      mean(voli_rotte2[grep("3", voli_rotte2$FLIGHT_TYPE_ID.x),]$MTOW)),
+    c(mean(na.omit((voli_rotte2[grep("1", voli_rotte2$FLIGHT_TYPE_ID.x),]$distanza))),
+      mean(na.omit((voli_rotte2[grep("2", voli_rotte2$FLIGHT_TYPE_ID.x),]$distanza))),
+      mean(na.omit((voli_rotte2[grep("3", voli_rotte2$FLIGHT_TYPE_ID.x),]$distanza))))),
+    row.names = c("Regional","International","Domestic"))
+  colnames(average) <- c("MTOW","Distance")
+  
+  incProgress(2/n, detail = paste("Puslisco DataSet"))
+  
+        voli_rotte_clean <- na.omit(voli_rotte2[ , c("MTOW","distanza")])
+  voli_rotte_clean_sd <- voli_rotte_clean[!duplicated(voli_rotte_clean), ]
+  voli_rotte_clean_sd$MTOW <- (voli_rotte_clean_sd$MTOW - mean(voli_rotte_clean_sd$MTOW))/(2*sd(voli_rotte_clean_sd$MTOW))
+  voli_rotte_clean_sd$distanza <- (voli_rotte_clean_sd$distanza - mean(voli_rotte_clean_sd$distanza))/(2*sd(voli_rotte_clean_sd$distanza))
+    
+  voli_rotte_clean_sd <- na.omit(voli_rotte_clean_sd[ , c("MTOW","distanza")])
+  
+    incProgress(3/n, detail = paste("Calcolo Cluster"))
+
+    set.seed(1237)
+     numCluster <- input$cluster
+
+   km <- kmeans(voli_rotte_clean_sd, centers = numCluster, nstart = 25)
+      })
+  
+  z$doTable <- input$cluster
+      
+  
+  set.seed(1237)
+  voli_rotte_clean_sd$cluster <- km$cluster
+  
+  
+  p <- ggplot(voli_rotte_clean_sd, aes(x = distanza,
+                   y = MTOW,
+                   color = factor(cluster))) +
+              geom_point()
+ggplotly(p)
+
+ # mappa_cluster <- cbind(na.omit(voli_rotte2)$ID, km$cluster)
+
+})
+
+```
+
+
+
+Row {.tabset .tabset-fade}
+-------------------------------------
+### Prova    
+```{r}
+    renderTable({
+  if(is.null(z$doTable)) return()
+      print(z$doTable)
+      if( z$doTable >= 4){
+          head( xtable(mtcars, digits = 0), n = 6 )
+      }
+  
+#   temp.table <- xtable(x$doTable$mean, digits = 0)
+# panderOptions('table.split.table', Inf)
+# panderOptions('digits', 4)
+# pander(temp.table, style = "grid", missing = '')
+# temp.table
+}, rownames = TRUE)
+```
