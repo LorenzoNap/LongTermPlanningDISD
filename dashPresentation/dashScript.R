@@ -105,6 +105,7 @@ createMap <- function(){
   
   library(tidyr)
   library(dplyr) # per convertire i gradi gps a decimali
+  library(sp)
   rotte <- mutate(rotte, 
                   LAT1c=LAT1 %>%
                     sub(':', 'd', .) %>%
@@ -334,5 +335,23 @@ doClustering <- function(nClust, dataSet) {
   
 }
 
-
+calculateMean <- function(temp){
+  
+  
+  
+  lastYearOil <- temp %>% filter(CLUSTER == 1) %>% filter(STO > 2016) %>% group_by(MTOWTemp) %>%
+    summarise(count=n())
+  print(sum(lastYearOil$count))
+  
+  lastYearOil$oil <- 0
+  lastYearOil <- lastYearOil[order(lastYearOil$MTOWTemp),]
+  lastYearOil$oil <- seq.int(nrow(lastYearOil))
+  
+  
+  lastYearOil$TOTAL_OIL <- lastYearOil$oil * lastYearOil$count
+  meanOriginalTimeSeries <- mean(lastYearOil$TOTAL_OIL)
+  
+  return (list(mediaOlioVoliTS = meanOriginalTimeSeries, tuttiVoliTS =sum(lastYearOil$count)))
+  
+}
 
