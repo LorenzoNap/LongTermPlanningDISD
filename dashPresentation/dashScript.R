@@ -335,11 +335,10 @@ doClustering <- function(nClust, dataSet) {
   
 }
 
-calculateMean <- function(temp){
+calculateMean <- function(temp, clusterNumber){
   
-  
-  
-  lastYearOil <- temp %>% filter(CLUSTER == 1) %>% filter(STO > 2016) %>% group_by(MTOWTemp) %>%
+
+  lastYearOil <- temp %>% filter(CLUSTER == clusterNumber) %>% filter(STO >  "2015-01-01") %>% group_by(MTOWTemp) %>%
     summarise(count=n())
   print(sum(lastYearOil$count))
   
