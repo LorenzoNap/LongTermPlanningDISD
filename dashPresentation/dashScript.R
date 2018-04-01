@@ -138,16 +138,7 @@ createMap <- function(){
                              char2dms %>%
                              as.numeric)       
   
-  library(ggmap) # carico ggmap per chiedere a Google le coordinate mancanti dei luoghi (http://stat405.had.co.nz/ggmap.pdf)
-  # temp1          <- geocode(paste(rotte.null$DESCRIPTION1, "airport", sep = " "))#occhio che lat e lon sono invertiti
-  # temp2          <- geocode(paste(rotte.null$CODE, "airport", sep = " ")) # faccio la stessa cosa cercando i CODE
-  # temp <- temp1
-  # temp[which(is.na(temp1$lon)),]<-temp2[which(is.na(temp1$lon)),] # sostituisci agli na di temp1 i valori di temp2
-  
-  #temp <- read.csv("filename.csv")
-  
-  #colnames(temp) <- c("LON2c", "LAT2c")
-  #write.csv(temp, file = "downloaded.csv")
+  library(ggmap) 
   library(readr)
   downloaded <- read_csv("downloaded.csv", 
                          col_types = cols(X1 = col_skip()))
@@ -241,13 +232,7 @@ createMap <- function(){
                              || rotte.agg2$DESCRIPTION1=="UNKNOWN REGIONAL" 
                              || rotte.agg2$DESCRIPTION1=="UNKNOWN DOMESTIC"),]
   
-  # map_world <- map_data("world")
-  # g <- ggplot() +
-  #   geom_polygon(data = map_world, aes(x = long, y = lat, group = group)) +
-  #   geom_point(data = rotte.agg3, aes(x = LON2c, y = LAT2c), color = 'red')
-  
-  
-  
+ 
   return (rotte.agg3);
 }
 
@@ -335,11 +320,10 @@ doClustering <- function(nClust, dataSet) {
   
 }
 
-calculateMean <- function(temp){
+calculateMean <- function(temp, clusterNumber){
   
-  
-  
-  lastYearOil <- temp %>% filter(CLUSTER == 1) %>% filter(STO > 2016) %>% group_by(MTOWTemp) %>%
+
+  lastYearOil <- temp %>% filter(CLUSTER == clusterNumber) %>% filter(STO >  "2015-01-01") %>% group_by(MTOWTemp) %>%
     summarise(count=n())
   print(sum(lastYearOil$count))
   

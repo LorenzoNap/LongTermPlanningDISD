@@ -76,7 +76,7 @@ renderValueBox({
 Row {data-height=650}
 -------------------------------------
 
-### Percentuali {data-width=300}
+### {data-width=300}
 ```{r}
 
 p <- plot_ly(total, labels = ~Categorie, values = ~NumeroVoli, type = 'pie',
@@ -96,7 +96,7 @@ p
 ```
 
 
-### Mappa Voli
+###
 
 ```{r}
 library(leaflet)
@@ -125,7 +125,7 @@ renderLeaflet({
   for (row in 1:nrow(rotte.agg3)) {
     lon <- rotte.agg3[row, "LON2c"]
     lat  <- rotte.agg3[row, "LAT2c"]
-    inter1 <- gcIntermediate(c(lonTambo, latTambo), c(lon, lat), n=200,      addStartEnd=TRUE, sp = TRUE, breakAtDateLine = TRUE)
+    inter1 <- gcIntermediate(c(lonTambo, latTambo), c(lon, lat), n=200, addStartEnd=TRUE, sp = TRUE, breakAtDateLine = TRUE)
     vector[row] <- inter1
   }
   
@@ -261,7 +261,7 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- input$anni * 12
-        arimaMod <- auto.arima(tSerie)
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
       })
@@ -365,7 +365,7 @@ Rifornimenti
 =====================================  
 
 
-Inputs {.sidebar}
+Inputs {.sidebar data-width=200}
 -------------------------------------
 
 ```{r}
@@ -374,9 +374,16 @@ z <- reactiveValues(doTable = NULL)
 z <- reactiveValues(doOil = NULL)
 
 z <- reactiveValues(doTable2 = NULL)
+z <- reactiveValues(doOil2 = NULL)
+
 z <- reactiveValues(doTable3 = NULL)
+z <- reactiveValues(doOil3 = NULL)
+
 z <- reactiveValues(doTable4 = NULL)
+z <- reactiveValues(doOil4 = NULL)
+
 z <- reactiveValues(doTable5 = NULL)
+z <- reactiveValues(doOil5 = NULL)
 
 observeEvent(input$runCluster, {
     # 0 will be coerced to FALSE
@@ -392,7 +399,7 @@ actionButton("runCluster", "Run Analysis", icon("paper-plane"),
 ```
 
 
-Column {data-height=650}
+Column {data-height=400}
 -------------------------------------
    
 ### Clustering
@@ -492,9 +499,9 @@ renderPlotly({
 
 
 
-Row {.tabset .tabset-fade data-width=200} 
+Row {.tabset .tabset-fade} 
 -------------------------------------
-### Cluster 1    
+### Cluster 1
 ```{r}
 renderDygraph({
   if ( is.null(z$doTable) == TRUE) return()
@@ -511,25 +518,23 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- 3 * 12
-        arimaMod <- auto.arima(tSerie)
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
         
         z$doOil <- sum(arimaMod.Fr$mean)
       })
-  
-      
-      gen_array <- function(forecast_obj){
+  gen_array <- function(forecast_obj){
 
         actuals <- forecast_obj$x
         lower <- forecast_obj$lower[,2]
         upper <- forecast_obj$upper[,2]
         point_forecast <- forecast_obj$mean
-      
+
         cbind(actuals, lower, upper, point_forecast)
       }
       ts_array <- gen_array(arimaMod.Fr)
-      dygraph(ts_array) %>% 
+      dygraph(ts_array) %>%
       dyRangeSelector() %>%
       dySeries(name = "actuals", label = "actual") %>%
       dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
@@ -543,165 +548,193 @@ renderDygraph({
 
 
 
-<!-- ### Cluster 2    -->
-<!-- ```{r} -->
-<!-- renderDygraph({ -->
-<!--   if ( is.null(z$doTable2) == TRUE) return() -->
+### Cluster 2
+```{r}
+renderDygraph({
+  if ( is.null(z$doTable2) == TRUE) return()
 
-<!--     tSerie <- z$doTable2 -->
+    temp <-  z$doTable2
+    temp$STO <- format(temp$STO, format="%Y-%m")
+    df <- as.data.frame(table(temp$STO))
+    tserie <- ts(df[,-1], frequency=12, start=c(2003,4), end=c(2017,3))
+  
+    tSerie <- tserie
 
-<!--     withProgress(message = 'Operazioni', value = 0,  { -->
-<!--         # Number of times we'll go through the loop -->
-<!--         n <- 2 -->
-<!--         incProgress(1/n, detail = paste("Calcolo Arima")) -->
-<!--         tWindow <- 3 * 12 -->
-<!--         arimaMod <- auto.arima(tSerie) -->
-<!--         incProgress(2/n, detail = paste("Predizioni Arima")) -->
-<!--         arimaMod.Fr <- forecast(arimaMod, h = tWindow) -->
-<!--       }) -->
-
-
-<!--       gen_array <- function(forecast_obj){ -->
-
-<!--         actuals <- forecast_obj$x -->
-<!--         lower <- forecast_obj$lower[,2] -->
-<!--         upper <- forecast_obj$upper[,2] -->
-<!--         point_forecast <- forecast_obj$mean -->
-
-<!--         cbind(actuals, lower, upper, point_forecast) -->
-<!--       } -->
-<!--       ts_array <- gen_array(arimaMod.Fr) -->
-<!--       dygraph(ts_array) %>%  -->
-<!--       dyRangeSelector() %>% -->
-<!--       dySeries(name = "actuals", label = "actual") %>% -->
-<!--       dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>% -->
-<!--       dyLegend(show = "always", hideOnMouseOut = FALSE) %>% -->
-<!--       dyHighlight(highlightCircleSize = 5, -->
-<!--                   highlightSeriesOpts = list(strokeWidth = 2)) %>% -->
-<!--       dyOptions(axisLineColor = "navy", gridLineColor = "grey") -->
-
-<!-- }) -->
-<!-- ``` -->
-
-<!-- ### Cluster 3  -->
-<!-- ```{r} -->
-<!-- renderDygraph({ -->
-<!--   if ( is.null(z$doTable3) == TRUE) return() -->
-
-<!--     tSerie <- z$doTable3 -->
-
-<!--     withProgress(message = 'Operazioni', value = 0,  { -->
-<!--         # Number of times we'll go through the loop -->
-<!--         n <- 2 -->
-<!--         incProgress(1/n, detail = paste("Calcolo Arima")) -->
-<!--         tWindow <- 3 * 12 -->
-<!--         arimaMod <- auto.arima(tSerie) -->
-<!--         incProgress(2/n, detail = paste("Predizioni Arima")) -->
-<!--         arimaMod.Fr <- forecast(arimaMod, h = tWindow) -->
-<!--       }) -->
+    withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 2
+        incProgress(1/n, detail = paste("Calcolo Arima"))
+        tWindow <- 3 * 12
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        incProgress(2/n, detail = paste("Predizioni Arima"))
+        arimaMod.Fr <- forecast(arimaMod, h = tWindow)
+        
+        z$doOil2 <- sum(arimaMod.Fr$mean)
+        
+      })
 
 
-<!--       gen_array <- function(forecast_obj){ -->
+      gen_array <- function(forecast_obj){
 
-<!--         actuals <- forecast_obj$x -->
-<!--         lower <- forecast_obj$lower[,2] -->
-<!--         upper <- forecast_obj$upper[,2] -->
-<!--         point_forecast <- forecast_obj$mean -->
+        actuals <- forecast_obj$x
+        lower <- forecast_obj$lower[,2]
+        upper <- forecast_obj$upper[,2]
+        point_forecast <- forecast_obj$mean
 
-<!--         cbind(actuals, lower, upper, point_forecast) -->
-<!--       } -->
-<!--       ts_array <- gen_array(arimaMod.Fr) -->
-<!--       dygraph(ts_array) %>%  -->
-<!--       dyRangeSelector() %>% -->
-<!--       dySeries(name = "actuals", label = "actual") %>% -->
-<!--       dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>% -->
-<!--       dyLegend(show = "always", hideOnMouseOut = FALSE) %>% -->
-<!--       dyHighlight(highlightCircleSize = 5, -->
-<!--                   highlightSeriesOpts = list(strokeWidth = 2)) %>% -->
-<!--       dyOptions(axisLineColor = "navy", gridLineColor = "grey") -->
+        cbind(actuals, lower, upper, point_forecast)
+      }
+      ts_array <- gen_array(arimaMod.Fr)
+      dygraph(ts_array) %>%
+      dyRangeSelector() %>%
+      dySeries(name = "actuals", label = "actual") %>%
+      dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
+      dyLegend(show = "always", hideOnMouseOut = FALSE) %>%
+      dyHighlight(highlightCircleSize = 5,
+                  highlightSeriesOpts = list(strokeWidth = 2)) %>%
+      dyOptions(axisLineColor = "navy", gridLineColor = "grey")
 
-<!-- }) -->
-<!-- ``` -->
+})
+```
 
-<!-- ### Cluster 4   -->
-<!-- ```{r} -->
-<!-- renderDygraph({ -->
-<!--   if ( is.null(z$doTable4) == TRUE) return() -->
+### Cluster 3
+```{r}
+renderDygraph({
+  if ( is.null(z$doTable3) == TRUE) return()
 
-<!--     tSerie <- z$doTable4 -->
+    temp <-  z$doTable3
+    temp$STO <- format(temp$STO, format="%Y-%m")
+    df <- as.data.frame(table(temp$STO))
+    tserie <- ts(df[,-1], frequency=12, start=c(2003,4), end=c(2017,3))
+  
+    tSerie <- tserie
 
-<!--     withProgress(message = 'Operazioni', value = 0,  { -->
-<!--         # Number of times we'll go through the loop -->
-<!--         n <- 2 -->
-<!--         incProgress(1/n, detail = paste("Calcolo Arima")) -->
-<!--         tWindow <- 3 * 12 -->
-<!--         arimaMod <- auto.arima(tSerie) -->
-<!--         incProgress(2/n, detail = paste("Predizioni Arima")) -->
-<!--         arimaMod.Fr <- forecast(arimaMod, h = tWindow) -->
-<!--       }) -->
-
-
-<!--       gen_array <- function(forecast_obj){ -->
-
-<!--         actuals <- forecast_obj$x -->
-<!--         lower <- forecast_obj$lower[,2] -->
-<!--         upper <- forecast_obj$upper[,2] -->
-<!--         point_forecast <- forecast_obj$mean -->
-
-<!--         cbind(actuals, lower, upper, point_forecast) -->
-<!--       } -->
-<!--       ts_array <- gen_array(arimaMod.Fr) -->
-<!--       dygraph(ts_array) %>%  -->
-<!--       dyRangeSelector() %>% -->
-<!--       dySeries(name = "actuals", label = "actual") %>% -->
-<!--       dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>% -->
-<!--       dyLegend(show = "always", hideOnMouseOut = FALSE) %>% -->
-<!--       dyHighlight(highlightCircleSize = 5, -->
-<!--                   highlightSeriesOpts = list(strokeWidth = 2)) %>% -->
-<!--       dyOptions(axisLineColor = "navy", gridLineColor = "grey") -->
-
-<!-- }) -->
-<!-- ``` -->
-
-<!-- ### Cluster 5  -->
-<!-- ```{r} -->
-<!-- renderDygraph({ -->
-<!--   if ( is.null(z$doTable5) == TRUE) return() -->
-
-<!--     tSerie <- z$doTable5 -->
-
-<!--     withProgress(message = 'Operazioni', value = 0,  { -->
-<!--         # Number of times we'll go through the loop -->
-<!--         n <- 2 -->
-<!--         incProgress(1/n, detail = paste("Calcolo Arima")) -->
-<!--         tWindow <- 3 * 12 -->
-<!--         arimaMod <- auto.arima(tSerie) -->
-<!--         incProgress(2/n, detail = paste("Predizioni Arima")) -->
-<!--         arimaMod.Fr <- forecast(arimaMod, h = tWindow) -->
-<!--       }) -->
+    withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 2
+        incProgress(1/n, detail = paste("Calcolo Arima"))
+        tWindow <- 3 * 12
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        incProgress(2/n, detail = paste("Predizioni Arima"))
+        arimaMod.Fr <- forecast(arimaMod, h = tWindow)
+        z$doOil3 <- sum(arimaMod.Fr$mean)
+      })
 
 
-<!--       gen_array <- function(forecast_obj){ -->
+      gen_array <- function(forecast_obj){
 
-<!--         actuals <- forecast_obj$x -->
-<!--         lower <- forecast_obj$lower[,2] -->
-<!--         upper <- forecast_obj$upper[,2] -->
-<!--         point_forecast <- forecast_obj$mean -->
+        actuals <- forecast_obj$x
+        lower <- forecast_obj$lower[,2]
+        upper <- forecast_obj$upper[,2]
+        point_forecast <- forecast_obj$mean
 
-<!--         cbind(actuals, lower, upper, point_forecast) -->
-<!--       } -->
-<!--       ts_array <- gen_array(arimaMod.Fr) -->
-<!--       dygraph(ts_array) %>%  -->
-<!--       dyRangeSelector() %>% -->
-<!--       dySeries(name = "actuals", label = "actual") %>% -->
-<!--       dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>% -->
-<!--       dyLegend(show = "always", hideOnMouseOut = FALSE) %>% -->
-<!--       dyHighlight(highlightCircleSize = 5, -->
-<!--                   highlightSeriesOpts = list(strokeWidth = 2)) %>% -->
-<!--       dyOptions(axisLineColor = "navy", gridLineColor = "grey") -->
+        cbind(actuals, lower, upper, point_forecast)
+      }
+      ts_array <- gen_array(arimaMod.Fr)
+      dygraph(ts_array) %>%
+      dyRangeSelector() %>%
+      dySeries(name = "actuals", label = "actual") %>%
+      dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
+      dyLegend(show = "always", hideOnMouseOut = FALSE) %>%
+      dyHighlight(highlightCircleSize = 5,
+                  highlightSeriesOpts = list(strokeWidth = 2)) %>%
+      dyOptions(axisLineColor = "navy", gridLineColor = "grey")
 
-<!-- }) -->
-<!-- ``` -->
+})
+```
+
+### Cluster 4
+```{r}
+renderDygraph({
+  if ( is.null(z$doTable4) == TRUE) return()
+
+    temp <-  z$doTable4
+    temp$STO <- format(temp$STO, format="%Y-%m")
+    df <- as.data.frame(table(temp$STO))
+    tserie <- ts(df[,-1], frequency=12, start=c(2003,4), end=c(2017,3))
+  
+    tSerie <- tserie
+
+    withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 2
+        incProgress(1/n, detail = paste("Calcolo Arima"))
+        tWindow <- 3 * 12
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        incProgress(2/n, detail = paste("Predizioni Arima"))
+        arimaMod.Fr <- forecast(arimaMod, h = tWindow)
+        z$doOil4 <- sum(arimaMod.Fr$mean)
+
+      })
+
+
+      gen_array <- function(forecast_obj){
+
+        actuals <- forecast_obj$x
+        lower <- forecast_obj$lower[,2]
+        upper <- forecast_obj$upper[,2]
+        point_forecast <- forecast_obj$mean
+
+        cbind(actuals, lower, upper, point_forecast)
+      }
+      ts_array <- gen_array(arimaMod.Fr)
+      dygraph(ts_array) %>%
+      dyRangeSelector() %>%
+      dySeries(name = "actuals", label = "actual") %>%
+      dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
+      dyLegend(show = "always", hideOnMouseOut = FALSE) %>%
+      dyHighlight(highlightCircleSize = 5,
+                  highlightSeriesOpts = list(strokeWidth = 2)) %>%
+      dyOptions(axisLineColor = "navy", gridLineColor = "grey")
+
+})
+```
+
+### Cluster 5
+```{r}
+renderDygraph({
+  if ( is.null(z$doTable5) == TRUE) return()
+
+    temp <-  z$doTable5
+    temp$STO <- format(temp$STO, format="%Y-%m")
+    df <- as.data.frame(table(temp$STO))
+    tserie <- ts(df[,-1], frequency=12, start=c(2003,4), end=c(2017,3))
+  
+    tSerie <- tserie
+
+    withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 2
+        incProgress(1/n, detail = paste("Calcolo Arima"))
+        tWindow <- 3 * 12
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        incProgress(2/n, detail = paste("Predizioni Arima"))
+        arimaMod.Fr <- forecast(arimaMod, h = tWindow)
+        z$doOil5 <- sum(arimaMod.Fr$mean)
+
+      })
+
+
+      gen_array <- function(forecast_obj){
+
+        actuals <- forecast_obj$x
+        lower <- forecast_obj$lower[,2]
+        upper <- forecast_obj$upper[,2]
+        point_forecast <- forecast_obj$mean
+
+        cbind(actuals, lower, upper, point_forecast)
+      }
+      ts_array <- gen_array(arimaMod.Fr)
+      dygraph(ts_array) %>%
+      dyRangeSelector() %>%
+      dySeries(name = "actuals", label = "actual") %>%
+      dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
+      dyLegend(show = "always", hideOnMouseOut = FALSE) %>%
+      dyHighlight(highlightCircleSize = 5,
+                  highlightSeriesOpts = list(strokeWidth = 2)) %>%
+      dyOptions(axisLineColor = "navy", gridLineColor = "grey")
+
+})
+```
 
 
 
@@ -715,7 +748,7 @@ renderGauge({
   if ( is.null(z$doTable) == TRUE) return()
   if ( is.null(z$doOil) == TRUE) return()
   
-  rate <- calculateMean(z$doTable)
+  rate <- calculateMean(z$doTable, 1)
   
   x <- rate$tuttiVoliTS
   y <- rate$mediaOlioVoliTS
@@ -736,32 +769,100 @@ renderGauge({
 ### Oil Cluster 2 {.value-box}
 
 ```{r}
-renderValueBox({
-  valueBox(total[2,]$NumeroVoli, icon = "fa-car", color = "orange")
+renderGauge({
+  if ( is.null(z$doTable2) == TRUE) return()
+  if ( is.null(z$doOil2) == TRUE) return()
+  
+  rate <- calculateMean(z$doTable2, 2)
+  
+  x <- rate$tuttiVoliTS
+  y <- rate$mediaOlioVoliTS
+  print(x)
+  print(y)
+  
+  z <- z$doOil2
+  print(z)
+  w <- (y * z) / x
+  print(w)
+  print((( (w/y) * 100 ) - 100))
+  gauge(  as.integer((( (w/y) * 100 ) - 100)), min = 0, max = 100, symbol = '%', gaugeSectors(
+    success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+  ))
 })
 ```
 
 ### Oil Cluster 3 {.value-box}
 
 ```{r}
-renderValueBox({
-  valueBox(total[3,]$NumeroVoli, icon = "fa-car", color = "primary")
+renderGauge({
+  if ( is.null(z$doTable3) == TRUE) return()
+  if ( is.null(z$doOil3) == TRUE) return()
+  
+  rate <- calculateMean(z$doTable3, 3)
+  
+  x <- rate$tuttiVoliTS
+  y <- rate$mediaOlioVoliTS
+  print(x)
+  print(y)
+  
+  z <- z$doOil3
+  print(z)
+  w <- (y * z) / x
+  print(w)
+  print((( (w/y) * 100 ) - 100))
+  gauge(  as.integer((( (w/y) * 100 ) - 100)), min = 0, max = 100, symbol = '%', gaugeSectors(
+    success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+  ))
 })
 ```
 
 ### Oil Cluster 4 {.value-box}
 
 ```{r}
-renderValueBox({
-  valueBox(total[3,]$NumeroVoli, icon = "fa-car", color = "primary")
+renderGauge({
+  if ( is.null(z$doTable4) == TRUE) return()
+  if ( is.null(z$doOil4) == TRUE) return()
+  
+  rate <- calculateMean(z$doTable4, 4)
+  
+  x <- rate$tuttiVoliTS
+  y <- rate$mediaOlioVoliTS
+  print(x)
+  print(y)
+  
+  z <- z$doOil4
+  print(z)
+  w <- (y * z) / x
+  print(w)
+  print((( (w/y) * 100 ) - 100))
+  gauge(  as.integer((( (w/y) * 100 ) - 100)), min = 0, max = 100, symbol = '%', gaugeSectors(
+    success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+  ))
 })
 ```
 
 ### Oil Cluster 5 {.value-box}
 
 ```{r}
-renderValueBox({
-  valueBox(total[3,]$NumeroVoli, icon = "fa-car", color = "primary")
+renderGauge({
+  if ( is.null(z$doTable5) == TRUE) return()
+  if ( is.null(z$doOil5) == TRUE) return()
+  
+  rate <- calculateMean(z$doTable5, 5)
+  
+  x <- rate$tuttiVoliTS
+  y <- rate$mediaOlioVoliTS
+  print(x)
+  print(y)
+  
+  z <- z$doOil5
+  print(z)
+  w <- (y * z) / x
+  print(w)
+  print((( (w/y) * 100 ) - 100))
+  gauge(  as.integer((( (w/y) * 100 ) - 100)), min = 0, max = 100, symbol = '%', gaugeSectors(
+    success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+  ))
 })
 ```
 
