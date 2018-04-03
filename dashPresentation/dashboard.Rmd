@@ -565,7 +565,9 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- 3 * 12
+
         arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
         
