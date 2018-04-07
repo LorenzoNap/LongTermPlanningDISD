@@ -91,11 +91,12 @@ if(saveFile){
 ggplot(Statistiche2003, aes(x=Date)) + 
   geom_line(aes(y=rescaleVoli, color="Voli")) + 
   geom_line(aes(y=rescaleGDP, color="GPD")) + 
-  labs(title="Voli vs GDP", 
-       subtitle="Comparazione GDP e voli totali",
+  labs(title="Flights vs GDP", 
+       subtitle="Comparison GDP vs Number of Flights",
+       y="", x = "Time",
        color=NULL) +  # title and caption
   scale_x_date(date_labels="%b %Y", date_breaks  ="4 month") +  # change to monthly ticks and labels
-  scale_colour_manual(name="Serie",
+  scale_colour_manual(name="Series:",
                       values=c("#00ba38", "#f8766d")) +  # line color
   theme(axis.text.x = element_text(angle = 90, vjust=0.5, size = 8),  # rotate x axis text
         panel.grid.minor = element_blank())
@@ -142,7 +143,7 @@ popTS <- ts(Statistiche2003$Oil, frequency=12, start=c(2003,4))
 tWindow <- 120
 arimaMod <- auto.arima(voliTS, stepwise=FALSE, approximation=FALSE)
 arimaMod.Fr <- forecast(arimaMod, h = tWindow)
-autoplot(arimaMod.Fr, main  = "Predizioni Arima")
+autoplot(arimaMod.Fr, main  = "Arima Prediction")
 
 if(saveFile){
   ggsave(paste(path,"ArimaSenzaRegressori",".jpg", sep=""))
@@ -154,7 +155,7 @@ dfArimaMod <- data.frame(Y=as.matrix(arimaMod.Fr$mea), date=as.Date(as.yearmon(t
 xreg <- cbind(gdpTS, popTS )
 fit <- auto.arima(voliTS, xreg=xreg, stepwise=FALSE, approximation=FALSE)
 arimaMod.Fr <- forecast(fit, xreg=xreg, h= tWindow)
-autoplot(arimaMod.Fr, main = "Predizioni Arima Regressori")
+autoplot(arimaMod.Fr, main = "Arima Prediction with regressors")
 
 if(saveFile){
   ggsave(paste(path,"ArimaConRegressori",".jpg", sep=""))
@@ -172,10 +173,10 @@ ggplot() +
   geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
   geom_line(data=dfArimaCov, aes(date, Y,  color="Arima Cov"), size = 0.5)+
   geom_line(data=dfSerie, aes(date, Y,  color="Serie Completa"), size = 1.0)+
-  labs(title=paste("Confronto Arima,Arima reg su Serie Completa"),
-       y="Numero voli", x = "Data")+
+  labs(title=paste("Arima Comparison with regressors"),
+       y="Number of Flights", x = "Time")+
   geom_vline(xintercept = as.numeric(as.Date("2017-03-01")),color="black" ,size = 0.5,linetype=4)+
-  scale_colour_manual(name="Serie",
+  scale_colour_manual(name="Series:",
                       values=c("red", "green", "blue"))
 
 if(saveFile){

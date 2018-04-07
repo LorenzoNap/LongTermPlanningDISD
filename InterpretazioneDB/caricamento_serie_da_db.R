@@ -148,6 +148,7 @@ dom.dep.db.window <- window(dom.dep.db, start = startDateSito, end=endDateSito, 
 
 
 plotConfrontoSerie <- function(serieSito, serieDB, title, save = FALSE){
+  theme_set(theme_bw())
  
   df <- data.frame(Y=as.matrix(serieSito), date=as.Date(as.yearmon(time(serieSito))))
   df2 <- data.frame(Y=as.matrix(serieDB), date=as.Date(as.yearmon(time(serieDB))))
@@ -156,11 +157,14 @@ plotConfrontoSerie <- function(serieSito, serieDB, title, save = FALSE){
   
   #confronto linee
   ggplot() +
-    geom_line(data=df, aes(date, Y, color="Voli Sito"), size = 0.5) +
-    geom_line(data=df2, aes(date, Y,  color="Voli DB"), size = 0.5)+
+    geom_line(data=df, aes(date, Y, color="Flights Site"), size = 0.5) +
+    geom_line(data=df2, aes(date, Y,  color="Flights DB"), size = 0.5)+
     labs(title=title, 
-         y="Numero voli", x = "Data")+
-    scale_colour_manual(name="Serie",
+         y="Number of Flights", x = "Time")+
+    scale_x_date(date_labels="%b %Y", date_breaks  ="4 month")+  # change to monthly ticks and labels
+    theme(axis.text.x = element_text(angle = 90, vjust=0.5),  # rotate x axis text
+          panel.grid.minor = element_blank())+
+    scale_colour_manual(name="Series",
                         values=c("blue", "red"))+
     scale_y_continuous(limits=c(min,max),oob = rescale_none)
   
@@ -169,12 +173,15 @@ plotConfrontoSerie <- function(serieSito, serieDB, title, save = FALSE){
   }
   
   ggplot() +
-    geom_area(data=df, aes(date, Y, fill="Voli Sito"), alpha=0.3) + 
+    geom_area(data=df, aes(date, Y, fill="Flights Site"), alpha=0.3) + 
     geom_line(data=df, aes(date, Y), size = 0.5, color="blue") +
-    geom_area(data=df2, aes(date, Y,fill="Voli DB"), alpha=0.3)+ 
+    geom_area(data=df2, aes(date, Y,fill="Flights DB"), alpha=0.3)+ 
     geom_line(data=df2, aes(date, Y), size = 0.5, color="red")+
     labs(title=title, 
          y="Numero voli", x = "Data")+
+    scale_x_date(date_labels="%b %Y", date_breaks  ="4 month")+  # change to monthly ticks and labels
+    theme(axis.text.x = element_text(angle = 90, vjust=0.5),  # rotate x axis text
+          panel.grid.minor = element_blank())+
     scale_fill_manual("Serie:", values=c("red", "blue"))+
     scale_y_continuous(limits=c(min,max),oob = rescale_none)
   
@@ -232,36 +239,36 @@ dfDifferenze <- data.frame()
 # VALUTAZIONE QUERY SU DB - 1° ROUND --------------------------------------
 # Realizza grafici comparativi tra i dati estratti dal db e quelli delle statistiche ufficiali
 
-plotConfrontoSerie(reg.arr.ss,reg.arr.db.window,"Confronto Arrivi Reg Sito vs DB", saveFile)
-result <- showErrorConfrontoSerie(reg.arr.ss,reg.arr.db.window, "Errori Arrivi Reg Sito vs Arrivi DB", dfDifferenze, "Arrv Reg")
+plotConfrontoSerie(reg.arr.ss,reg.arr.db.window,"Regional Arrival Site vs DB", saveFile)
+result <- showErrorConfrontoSerie(reg.arr.ss,reg.arr.db.window, "Errors Regional Arrival Site vs DB", dfDifferenze, "Arrv Reg")
 dfDifferenze <- rbind(dfDifferenze, result)
 
 
-plotConfrontoSerie(reg.dep.ss,reg.dep.db.window,"Confronto Dep Reg Sito vs DB", saveFile)
-result <- showErrorConfrontoSerie(reg.dep.ss,reg.dep.db.window, "Errori Dep Reg Sito vs Arrivi DB", dfDifferenze, "Dep Reg")
+plotConfrontoSerie(reg.dep.ss,reg.dep.db.window,"Regional Departure Site vs DB", saveFile)
+result <- showErrorConfrontoSerie(reg.dep.ss,reg.dep.db.window, "Errors Regional Departure Site vs DB", dfDifferenze, "Dep Reg")
 dfDifferenze <- rbind(dfDifferenze, result)
 
-plotConfrontoSerie(int.arr.ss,int.arr.db.window, "Confronto Arr Int Sito vs DB", saveFile)
-result <- showErrorConfrontoSerie(int.arr.ss,int.arr.db.window, "Errori Arr Int Sito vs Arrivi DB", dfDifferenze, "Arr Int")
+plotConfrontoSerie(int.arr.ss,int.arr.db.window, "International Arrival Site vs DB", saveFile)
+result <- showErrorConfrontoSerie(int.arr.ss,int.arr.db.window, "Errors International Arrival Site vs DB", dfDifferenze, "Arr Int")
 dfDifferenze <- rbind(dfDifferenze, result)
 
-plotConfrontoSerie(int.dep.ss,int.dep.db.window, "Confronto Dep Int Sito vs DB", saveFile)
-result <- showErrorConfrontoSerie(int.dep.ss,int.dep.db.window, "Errori Dep Int Sito vs Arrivi DB", dfDifferenze, "Dep Int" )
-dfDifferenze <- rbind(dfDifferenze, result)
-
-
-plotConfrontoSerie(dom.arr.ss,dom.arr.db.window, "Confronto Arr Dom Sito vs DB", saveFile)
-result <- showErrorConfrontoSerie(dom.arr.ss,dom.arr.db.window, "Errori Arr Dom Sito vs Arrivi DB", dfDifferenze, "Arr Dom"  )
+plotConfrontoSerie(int.dep.ss,int.dep.db.window, "International Departure Site vs DB", saveFile)
+result <- showErrorConfrontoSerie(int.dep.ss,int.dep.db.window, "Errors International Departure Site vs Arrivi DB", dfDifferenze, "Dep Int" )
 dfDifferenze <- rbind(dfDifferenze, result)
 
 
-plotConfrontoSerie(dom.dep.ss,dom.dep.db.window, "Confronto Dep Dom Sito vs DB", saveFile)
-result <- showErrorConfrontoSerie(dom.dep.ss,dom.dep.db.window, "Errori Dep Dom Sito vs Arrivi DB", dfDifferenze, "Dep Dom"  )
+plotConfrontoSerie(dom.arr.ss,dom.arr.db.window, "Domestic Arrival Site vs DB", saveFile)
+result <- showErrorConfrontoSerie(dom.arr.ss,dom.arr.db.window, "Errors Domestic Arrival Site vs DB", dfDifferenze, "Arr Dom"  )
+dfDifferenze <- rbind(dfDifferenze, result)
+
+
+plotConfrontoSerie(dom.dep.ss,dom.dep.db.window, "Domestic Departure Site vs DB", saveFile)
+result <- showErrorConfrontoSerie(dom.dep.ss,dom.dep.db.window, "Errors Domestic Departure Site vs DB", dfDifferenze, "Dep Dom"  )
 dfDifferenze <- rbind(dfDifferenze, result)
 
 
 
-printTableDifference(dfDifferenze, "Numero Voli Sito vs DB", saveFile)
+printTableDifference(dfDifferenze, "Number of Flights Site vs DB", saveFile)
 
 
 # AGGIUSTAMENTO QUERY SU DB - 2° ROUND ------------------------------------
@@ -272,121 +279,121 @@ printTableDifference(dfDifferenze, "Numero Voli Sito vs DB", saveFile)
 #
 # Aggiungi i voli transit:
 ### INTERNAZIONALI
-int.dep.aflight.transit<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
-                                   FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
-                                   WHERE A_FLIGHT.ID in
-                                   (SELECT A_MOVEMENT.DEP_FLIGHT_ID
-                                   FROM [AMS516].[dbo].[A_MOVEMENT] 
-                                   INNER JOIN A_FLIGHT ON DEP_FLIGHT_ID=A_FLIGHT.ID)
-                                   and S_ROUTE.FLIGHT_TYPE_ID=2
-                                   and A_FLIGHT.STO between '20120401' and '20171231'
-                                   and A_FLIGHT.QUALIFIER_ID=5
-                                   and A_FLIGHT.EXCEPTION_ID is null
-                                   GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
-                                   order by ANNO, MESE;")
-int.dep.db.transit <- ts(int.dep.aflight.transit$CONTO, frequency=12, start=2012+3/12, end=endDateSito)
-int.dep.db2 <- int.dep.db.window+int.dep.db.transit
-
-plotConfrontoSerie(int.dep.ss,int.dep.db2,"Confronto Migliorato Dep Int Sito vs DB", saveFile)
-result <- showErrorConfrontoSerie(int.dep.ss,int.dep.db2, "Confronto Migliorato Dep Int Sito vs DB", dfDifferenze, "Dep Int Migli I")
-dfDifferenze <- rbind(dfDifferenze, result)
-
-int.arr.aflight.transit<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
-                                   FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
-                                   WHERE A_FLIGHT.ID in
-                                   (SELECT A_MOVEMENT.ARR_FLIGHT_ID
-                                   FROM [AMS516].[dbo].[A_MOVEMENT] 
-                                   INNER JOIN A_FLIGHT ON ARR_FLIGHT_ID=A_FLIGHT.ID)
-                                   and S_ROUTE.FLIGHT_TYPE_ID=2
-                                   --and A_FLIGHT.STO between '20120401' and '20171231'
-                                   and A_FLIGHT.QUALIFIER_ID=5
-                                   and A_FLIGHT.EXCEPTION_ID is null
-                                   GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
-                                   order by ANNO, MESE;")
-
-int.arr.db.transit <- ts(int.arr.aflight.transit$CONTO, frequency=12, start=2012+3/12, end=endDateSito)
-int.arr.db2 <- int.arr.db+int.arr.db.transit
-
-plotConfrontoSerie(int.arr.ss,int.arr.db2,"Confronto Migliorato Arr Int Sito vs DB", saveFile)
-result <- showErrorConfrontoSerie(int.arr.ss,int.arr.db2, "Confronto Migliorato Arr Int Sito vs DB", dfDifferenze, "Arr Int Migli I" )
-dfDifferenze <- rbind(dfDifferenze, result)
-### DOMESTICI
-dom.dep.aflight.transit<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
-  FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
-                            WHERE A_FLIGHT.ID in
-                            (SELECT A_MOVEMENT.DEP_FLIGHT_ID
-                            FROM [AMS516].[dbo].[A_MOVEMENT] 
-                            INNER JOIN A_FLIGHT ON DEP_FLIGHT_ID=A_FLIGHT.ID)
-                            and S_ROUTE.FLIGHT_TYPE_ID=3
-                            and A_FLIGHT.STO between '20120401' and '20171231'
-                            and A_FLIGHT.QUALIFIER_ID=5
-                            and A_FLIGHT.EXCEPTION_ID is null
-                            GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
-                            order by ANNO, MESE;")
-dom.dep.db.transit <- ts(dom.dep.aflight.transit$CONTO, frequency=12, start=2012+3/12, end=endDateSito)
-dom.dep.db2 <- dom.dep.db+dom.dep.db.transit
-
-plotConfrontoSerie(dom.dep.ss,dom.dep.db2,"Confronto Migliorato Dep Dom Sito vs DB", saveFile)
-result <- showErrorConfrontoSerie(dom.dep.ss,dom.dep.db2, "Confronto Migliorato Dep Dom Sito vs DB", dfDifferenze, "Dep Dom Migli I")
-dfDifferenze <- rbind(dfDifferenze, result)
-
-printTableDifference(dfDifferenze, "Numero Voli Sito vs DB Migliorato I", saveFile)
-
-
-# PROVIAMO A MIGLIORARE ULTERIORMENTE - 3? ROUND --------------------------
-dom.arr.aflight.transit<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
-  FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
-                                   WHERE A_FLIGHT.ID in
-                                   (SELECT A_MOVEMENT.ARR_FLIGHT_ID
-                                   FROM [AMS516].[dbo].[A_MOVEMENT] 
-                                   INNER JOIN A_FLIGHT ON ARR_FLIGHT_ID=A_FLIGHT.ID)
-                                   and S_ROUTE.FLIGHT_TYPE_ID=3
-                                   and A_FLIGHT.STO between '20120401' and '20171231'
-                                   and A_FLIGHT.QUALIFIER_ID=5
-                                   and A_FLIGHT.EXCEPTION_ID is null
-                                   GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
-                                   order by ANNO, MESE;")
-dom.arr.db.transit <- ts(dom.arr.aflight.transit$CONTO, frequency=12, start=2012+2/12, end=endDateSito)
-dom.arr.db2 <- dom.arr.db+dom.arr.db.transit
-
-plotConfrontoSerie(dom.arr.ss,dom.arr.db2,"Confronto Migliorato II Dep Dom Sito vs DB", saveFile)
-resutl <- showErrorConfrontoSerie(dom.arr.ss,dom.arr.db2, "Confronto Migliorato II Dep Dom Sito vs DB", dfDifferenze, "Dep Dom Migli II")
-dfDifferenze <- rbind(dfDifferenze, result)
-printTableDifference(dfDifferenze, "Numero Voli Sito vs DB Migliorato II", saveFile)
-
-
-
-#Confronto serie storiche db (complete) con serie storiche sito
-
-plotConfrontoSerie(reg.arr.ss,reg.arr.db,"Confronto Arrivi Reg Sito vs DB Completo", saveFile)
-result <- showErrorConfrontoSerie(reg.arr.ss,reg.arr.db, "Errori Arrivi Reg Sito vs Arrivi DB Completo", dfDifferenze, "Comp Arrv Reg")
-dfDifferenze <- rbind(dfDifferenze, result)
-
-
-plotConfrontoSerie(reg.dep.ss,reg.dep.db,"Confronto Dep Reg Sito vs DB Completo", saveFile)
-result <- showErrorConfrontoSerie(reg.dep.ss,reg.dep.db, "Errori Dep Reg Sito vs Arrivi DB Completo", dfDifferenze, "Comp Dep Reg")
-dfDifferenze <- rbind(dfDifferenze, result)
-
-plotConfrontoSerie(int.arr.ss,int.arr.db, "Confronto Arr Int Sito vs DB Completo", saveFile)
-result <- showErrorConfrontoSerie(int.arr.ss,int.arr.db, "Errori Arr Int Sito vs Arrivi DB Completo", dfDifferenze, "Comp Arr Int")
-dfDifferenze <- rbind(dfDifferenze, result)
-
-plotConfrontoSerie(int.dep.ss,int.dep.db, "Confronto Dep Int Sito vs DB Completo", saveFile)
-result <- showErrorConfrontoSerie(int.dep.ss,int.dep.db, "Errori Dep Int Sito vs Arrivi DB Completo", dfDifferenze, "Comp Dep Int" )
-dfDifferenze <- rbind(dfDifferenze, result)
-
-
-plotConfrontoSerie(dom.arr.ss,dom.arr.db, "Confronto Arr Dom Sito vs DB Completo", saveFile)
-result <- showErrorConfrontoSerie(dom.arr.ss,dom.arr.db, "Errori Arr Dom Sito vs Arrivi DB Completo", dfDifferenze, "Comp Arr Dom"  )
-dfDifferenze <- rbind(dfDifferenze, result)
-
-
-plotConfrontoSerie(dom.dep.ss,dom.dep.db, "Confronto Dep Dom Sito vs DB", saveFile)
-result <- showErrorConfrontoSerie(dom.dep.ss,dom.dep.db.window, "Errori Dep Dom Sito vs Arrivi DB", dfDifferenze, "Comp Dep Dom"  )
-dfDifferenze <- rbind(dfDifferenze, result)
-
-
-printTableDifference(dfDifferenze, "Numero Voli Sito vs DB", saveFile)
+# int.dep.aflight.transit<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
+#                                    FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
+#                                    WHERE A_FLIGHT.ID in
+#                                    (SELECT A_MOVEMENT.DEP_FLIGHT_ID
+#                                    FROM [AMS516].[dbo].[A_MOVEMENT] 
+#                                    INNER JOIN A_FLIGHT ON DEP_FLIGHT_ID=A_FLIGHT.ID)
+#                                    and S_ROUTE.FLIGHT_TYPE_ID=2
+#                                    and A_FLIGHT.STO between '20120401' and '20171231'
+#                                    and A_FLIGHT.QUALIFIER_ID=5
+#                                    and A_FLIGHT.EXCEPTION_ID is null
+#                                    GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
+#                                    order by ANNO, MESE;")
+# int.dep.db.transit <- ts(int.dep.aflight.transit$CONTO, frequency=12, start=2012+3/12, end=endDateSito)
+# int.dep.db2 <- int.dep.db.window+int.dep.db.transit
+# 
+# plotConfrontoSerie(int.dep.ss,int.dep.db2,"Confronto Migliorato Dep Int Sito vs DB", saveFile)
+# result <- showErrorConfrontoSerie(int.dep.ss,int.dep.db2, "Confronto Migliorato Dep Int Sito vs DB", dfDifferenze, "Dep Int Migli I")
+# dfDifferenze <- rbind(dfDifferenze, result)
+# 
+# int.arr.aflight.transit<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
+#                                    FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
+#                                    WHERE A_FLIGHT.ID in
+#                                    (SELECT A_MOVEMENT.ARR_FLIGHT_ID
+#                                    FROM [AMS516].[dbo].[A_MOVEMENT] 
+#                                    INNER JOIN A_FLIGHT ON ARR_FLIGHT_ID=A_FLIGHT.ID)
+#                                    and S_ROUTE.FLIGHT_TYPE_ID=2
+#                                    --and A_FLIGHT.STO between '20120401' and '20171231'
+#                                    and A_FLIGHT.QUALIFIER_ID=5
+#                                    and A_FLIGHT.EXCEPTION_ID is null
+#                                    GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
+#                                    order by ANNO, MESE;")
+# 
+# int.arr.db.transit <- ts(int.arr.aflight.transit$CONTO, frequency=12, start=2012+3/12, end=endDateSito)
+# int.arr.db2 <- int.arr.db+int.arr.db.transit
+# 
+# plotConfrontoSerie(int.arr.ss,int.arr.db2,"Confronto Migliorato Arr Int Sito vs DB", saveFile)
+# result <- showErrorConfrontoSerie(int.arr.ss,int.arr.db2, "Confronto Migliorato Arr Int Sito vs DB", dfDifferenze, "Arr Int Migli I" )
+# dfDifferenze <- rbind(dfDifferenze, result)
+# ### DOMESTICI
+# dom.dep.aflight.transit<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
+#   FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
+#                             WHERE A_FLIGHT.ID in
+#                             (SELECT A_MOVEMENT.DEP_FLIGHT_ID
+#                             FROM [AMS516].[dbo].[A_MOVEMENT] 
+#                             INNER JOIN A_FLIGHT ON DEP_FLIGHT_ID=A_FLIGHT.ID)
+#                             and S_ROUTE.FLIGHT_TYPE_ID=3
+#                             and A_FLIGHT.STO between '20120401' and '20171231'
+#                             and A_FLIGHT.QUALIFIER_ID=5
+#                             and A_FLIGHT.EXCEPTION_ID is null
+#                             GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
+#                             order by ANNO, MESE;")
+# dom.dep.db.transit <- ts(dom.dep.aflight.transit$CONTO, frequency=12, start=2012+3/12, end=endDateSito)
+# dom.dep.db2 <- dom.dep.db+dom.dep.db.transit
+# 
+# plotConfrontoSerie(dom.dep.ss,dom.dep.db2,"Confronto Migliorato Dep Dom Sito vs DB", saveFile)
+# result <- showErrorConfrontoSerie(dom.dep.ss,dom.dep.db2, "Confronto Migliorato Dep Dom Sito vs DB", dfDifferenze, "Dep Dom Migli I")
+# dfDifferenze <- rbind(dfDifferenze, result)
+# 
+# printTableDifference(dfDifferenze, "Numero Voli Sito vs DB Migliorato I", saveFile)
+# 
+# 
+# # PROVIAMO A MIGLIORARE ULTERIORMENTE - 3? ROUND --------------------------
+# dom.arr.aflight.transit<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
+#   FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
+#                                    WHERE A_FLIGHT.ID in
+#                                    (SELECT A_MOVEMENT.ARR_FLIGHT_ID
+#                                    FROM [AMS516].[dbo].[A_MOVEMENT] 
+#                                    INNER JOIN A_FLIGHT ON ARR_FLIGHT_ID=A_FLIGHT.ID)
+#                                    and S_ROUTE.FLIGHT_TYPE_ID=3
+#                                    and A_FLIGHT.STO between '20120401' and '20171231'
+#                                    and A_FLIGHT.QUALIFIER_ID=5
+#                                    and A_FLIGHT.EXCEPTION_ID is null
+#                                    GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
+#                                    order by ANNO, MESE;")
+# dom.arr.db.transit <- ts(dom.arr.aflight.transit$CONTO, frequency=12, start=2012+2/12, end=endDateSito)
+# dom.arr.db2 <- dom.arr.db+dom.arr.db.transit
+# 
+# plotConfrontoSerie(dom.arr.ss,dom.arr.db2,"Confronto Migliorato II Dep Dom Sito vs DB", saveFile)
+# resutl <- showErrorConfrontoSerie(dom.arr.ss,dom.arr.db2, "Confronto Migliorato II Dep Dom Sito vs DB", dfDifferenze, "Dep Dom Migli II")
+# dfDifferenze <- rbind(dfDifferenze, result)
+# printTableDifference(dfDifferenze, "Numero Voli Sito vs DB Migliorato II", saveFile)
+# 
+# 
+# 
+# #Confronto serie storiche db (complete) con serie storiche sito
+# 
+# plotConfrontoSerie(reg.arr.ss,reg.arr.db,"Confronto Arrivi Reg Sito vs DB Completo", saveFile)
+# result <- showErrorConfrontoSerie(reg.arr.ss,reg.arr.db, "Errori Arrivi Reg Sito vs Arrivi DB Completo", dfDifferenze, "Comp Arrv Reg")
+# dfDifferenze <- rbind(dfDifferenze, result)
+# 
+# 
+# plotConfrontoSerie(reg.dep.ss,reg.dep.db,"Confronto Dep Reg Sito vs DB Completo", saveFile)
+# result <- showErrorConfrontoSerie(reg.dep.ss,reg.dep.db, "Errori Dep Reg Sito vs Arrivi DB Completo", dfDifferenze, "Comp Dep Reg")
+# dfDifferenze <- rbind(dfDifferenze, result)
+# 
+# plotConfrontoSerie(int.arr.ss,int.arr.db, "Confronto Arr Int Sito vs DB Completo", saveFile)
+# result <- showErrorConfrontoSerie(int.arr.ss,int.arr.db, "Errori Arr Int Sito vs Arrivi DB Completo", dfDifferenze, "Comp Arr Int")
+# dfDifferenze <- rbind(dfDifferenze, result)
+# 
+# plotConfrontoSerie(int.dep.ss,int.dep.db, "Confronto Dep Int Sito vs DB Completo", saveFile)
+# result <- showErrorConfrontoSerie(int.dep.ss,int.dep.db, "Errori Dep Int Sito vs Arrivi DB Completo", dfDifferenze, "Comp Dep Int" )
+# dfDifferenze <- rbind(dfDifferenze, result)
+# 
+# 
+# plotConfrontoSerie(dom.arr.ss,dom.arr.db, "Confronto Arr Dom Sito vs DB Completo", saveFile)
+# result <- showErrorConfrontoSerie(dom.arr.ss,dom.arr.db, "Errori Arr Dom Sito vs Arrivi DB Completo", dfDifferenze, "Comp Arr Dom"  )
+# dfDifferenze <- rbind(dfDifferenze, result)
+# 
+# 
+# plotConfrontoSerie(dom.dep.ss,dom.dep.db, "Confronto Dep Dom Sito vs DB", saveFile)
+# result <- showErrorConfrontoSerie(dom.dep.ss,dom.dep.db.window, "Errori Dep Dom Sito vs Arrivi DB", dfDifferenze, "Comp Dep Dom"  )
+# dfDifferenze <- rbind(dfDifferenze, result)
+# 
+# 
+# printTableDifference(dfDifferenze, "Numero Voli Sito vs DB", saveFile)
 
 print("#### Esecuzione terminata. File salvati in InterpretazioneDB/confrontoSerie/ ####")
 

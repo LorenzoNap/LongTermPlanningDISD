@@ -19,22 +19,21 @@ dep_joined <-rbind(
 #
 dep_joined <- left_join(dep_joined,as.data.frame(mappa_cluster),by=c("DEP_FLIGHT_ID"="ID"))
 #
-head(dep_joined)
 
 library("cluster")
 library(factoextra)
 
-set.seed(123)
-# Compute the gap statistic
-gap_stat <- clusGap(voli_rotte_clean, FUN = kmeans, nstart = 25, 
-                    K.max = 10, B = 10) 
-fviz_gap_stat(gap_stat)
-
-
-fviz_cluster(kvoli_rotte, voli_rotte_clean, geom = c("point"))
-
-sil <- silhouette(kvoli_rotte$cluster, dist(voli_rotte_clean))
-fviz_silhouette(sil)
+# set.seed(123)
+# # Compute the gap statistic
+# gap_stat <- clusGap(voli_rotte_clean, FUN = kmeans, nstart = 25, 
+#                     K.max = 10, B = 10) 
+# fviz_gap_stat(gap_stat)
+# 
+# 
+# fviz_cluster(kvoli_rotte, voli_rotte_clean, geom = c("point"))
+# 
+# sil <- silhouette(kvoli_rotte$cluster, dist(voli_rotte_clean))
+# fviz_silhouette(sil)
 
 
 
@@ -70,13 +69,13 @@ for (i in seq(1,n_cluster)) {
   
   tWindow <- 36
   #visualizza i plot della serie storica
-  plotTimeseries(tserie,paste("#Voli Cluster ",i) ,pathFileTemp,TRUE)
+  plotTimeseries(tserie,paste("Flight Cluster",i) ,pathFileTemp,TRUE)
   #cerca il miglior modello tra "Mean method","Naive method","Drift method", "Seasonal naive method"
-  plotForecastTrainingSet(tserie, tWindow, paste("#Voli Cluster ",i) ,pathFileTemp, TRUE)
+  plotForecastTrainingSet(tserie, tWindow, paste("Flight Cluster",i) ,pathFileTemp, TRUE)
   #visualizza arima
-  plotArimaModel(tserie, tWindow, paste("#Voli Cluster ",i) ,pathFileTemp, TRUE)
+  plotArimaModel(tserie, tWindow, paste("Flight Cluster",i) ,pathFileTemp, TRUE)
   #prendi il miglior modello
-  bestModel <- evaluateBesModel(tserie, tWindow, paste("#Voli Cluster ",i),pathFileTemp, save = TRUE)
+  bestModel <- evaluateBesModel(tserie, tWindow, paste("Flight Cluster",i),pathFileTemp, save = TRUE)
   #print del modello migliore
   print( paste("Il miglior modello in base alle misure di errore per", "Serie Storica Reg Arr","e'",bestModel ))
   

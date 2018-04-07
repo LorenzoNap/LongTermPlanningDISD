@@ -183,7 +183,7 @@ classi_cluster
 # opportune serie storiche.
 # mappa_cluster: questa mappa associa ad ogni id di volo il suo cluster.
 mappa_cluster <- cbind(na.omit(voli_rotte2)$ID, cluster)
-#colnames(mappa_cluster) <- c("ID", "cluster")
+colnames(mappa_cluster) <- c("ID", "cluster")
 # A questo punto non resta che reaggruppare i voli gia estratti secondo questo mapping.
 
 

@@ -52,24 +52,28 @@ Row {data-height=200}
 ### Regionali {.value-box}
 
 ```{r}
+regTot <- format(total[1,]$NumeroVoli, digits=9, decimal.mark=",",big.mark="'",small.mark=".", small.interval=3)
 renderValueBox({
-  valueBox(total[1,]$NumeroVoli, icon = "fa-plane", color = "success")
+  valueBox(regTot, icon = "fa-plane", color = "success")
 })
 ```
 
 ### Internazionali {.value-box}
 
 ```{r}
+intTot <- format(total[2,]$NumeroVoli, digits=9, decimal.mark=",",big.mark="'",small.mark=".", small.interval=3)
+
 renderValueBox({
-  valueBox(total[2,]$NumeroVoli, icon = "fa-plane", color = "orange")
+  valueBox(intTot, icon = "fa-plane", color = "orange")
 })
 ```
 
 ### Domestici {.value-box}
 
 ```{r}
+domTot <- format(total[3,]$NumeroVoli, digits=9, decimal.mark=",",big.mark="'",small.mark=".", small.interval=3)
 renderValueBox({
-  valueBox(total[3,]$NumeroVoli, icon = "fa-plane", color = "primary")
+  valueBox(domTot, icon = "fa-plane", color = "primary")
 })
 ```
 
