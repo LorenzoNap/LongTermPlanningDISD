@@ -1,5 +1,8 @@
 library(RODBC)
-dbhandle <-odbcDriverConnect(connection="Driver={SQL Server};server=DESKTOP-32KTKVV;database=AMs516;trusted_connection=yes;")
+
+source("./parametriConnessioniFile.R")
+
+dbhandle <-odbcDriverConnect(connection=param.connessione.db)
 
 # a_flight <- sqlQuery(dbhandle,"select * from A_FLIGHT")
 # colnames(a_flight)

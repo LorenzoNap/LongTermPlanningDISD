@@ -1,0 +1,876 @@
+---
+title: "JNB"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    css: style.css
+runtime: shiny
+---
+
+```{r include=FALSE, cache=FALSE}
+source("../parametriConnessioniFile.R")
+source("dashScript.R")
+library(readxl)
+library(dygraphs)
+library(flexdashboard)
+library(plotly)
+library(Hmisc)
+library(leaflet)
+library(htmlwidgets)
+library(shiny)
+library(datasets)
+library(zoo)
+library(forecast)
+library(shinycssloaders)
+library(DT)
+library(xtable)
+library(pander)
+library(readr)
+library(data.table)
+library("cluster")
+library(factoextra)
+library("highcharter")
+library(dplyr)
+total <- data.frame("Categorie"=c("Regionali","Internazionali", "Domestici"),
+                    "NumeroVoli"=c(
+                      sum(reg.arr.aflight$CONTO) + sum(reg.dep.aflight$CONTO),
+                      sum(int.arr.aflight$CONTO) + sum(int.dep.aflight$CONTO),
+                      sum(dom.arr.aflight$CONTO) + sum(dom.dep.aflight$CONTO)
+                   ))
+
+
+rotte.agg3 <- createMap()
+
+``` 
+
+Statistiche Voli
+===================================== 
+
+
+Row {data-height=200}
+-----------------------------------------------------------------------
+### Regionali {.value-box}
+
+```{r}
+regTot <- format(total[1,]$NumeroVoli, digits=9, decimal.mark=",",big.mark="'",small.mark=".", small.interval=3)
+renderValueBox({
+  valueBox(regTot, icon = "fa-plane", color = "success")
+})
+```
+
+### Internazionali {.value-box}
+
+```{r}
+intTot <- format(total[2,]$NumeroVoli, digits=9, decimal.mark=",",big.mark="'",small.mark=".", small.interval=3)
+
+renderValueBox({
+  valueBox(intTot, icon = "fa-plane", color = "orange")
+})
+```
+
+### Domestici {.value-box}
+
+```{r}
+domTot <- format(total[3,]$NumeroVoli, digits=9, decimal.mark=",",big.mark="'",small.mark=".", small.interval=3)
+renderValueBox({
+  valueBox(domTot, icon = "fa-plane", color = "primary")
+})
+```
+
+Row {data-height=650}
+-------------------------------------
+
+### {data-width=300}
+```{r}
+
+p <- plot_ly(total, labels = ~Categorie, values = ~NumeroVoli, type = 'pie',
+             textposition = 'inside',
+        textinfo = 'label+percent',
+        insidetextfont = list(color = '#FFFFFF'),
+        hoverinfo = 'text',
+        text = ~paste('Numero voli:', NumeroVoli),
+        marker = list(colors = colors,
+                      line = list(color = '#FFFFFF', width = 1))
+             ) %>%
+  layout(
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+p
+
+```
+
+
+###
+
+```{r}
+library(leaflet)
+library(geosphere)
+library(sp)
+
+renderLeaflet({
+   greenLeafIcon <- makeIcon(
+    iconUrl = "http://icons.iconarchive.com/icons/paomedia/small-n-flat/96/map-marker-icon.png",
+    iconWidth = 10, iconHeight = 10)
+   
+  latTambo <- -26.134789
+  lonTambo <- 28.240528
+  
+  # f <- function(x) {
+  #   lon <- as.numeric(x["LON2c"])
+  #   lat  <- as.numeric(x["LAT2c"])
+  #   inter1 <- gcIntermediate(c(lonTambo, latTambo), c(lon, lat),n=200,addStartEnd=TRUE, sp = TRUE, breakAtDateLine = TRUE)
+  #   inter1
+  # }
+  # 
+  # result <- apply(rotte.agg3, 1, f)
+  
+  
+  vector <- vector(mode='list', length = nrow(rotte.agg3))
+  for (row in 1:nrow(rotte.agg3)) {
+    lon <- rotte.agg3[row, "LON2c"]
+    lat  <- rotte.agg3[row, "LAT2c"]
+    inter1 <- gcIntermediate(c(lonTambo, latTambo), c(lon, lat), n=200, addStartEnd=TRUE, sp = TRUE, breakAtDateLine = TRUE)
+    vector[row] <- inter1
+  }
+  
+  
+  ll0 <- lapply( vector , function(x) `@`(x , "lines") )
+ll1 <- lapply( unlist( ll0 ) , function(y) `@`(y,"Lines") )
+Sl <- SpatialLines( list( Lines( unlist( ll1 ) , ID = 1 ) ) )
+
+m <- leaflet(Sl)  %>% addTiles() %>% addPolylines(color="red", weight=0.5) %>%  setView(lonTambo, latTambo, zoom = 3) %>%
+    addMarkers(data = rotte.agg3,~LON2c, ~LAT2c, popup = ~as.character(DESCRIPTION1),
+               icon =greenLeafIcon
+               , label = ~as.character(DESCRIPTION1))
+  m
+  
+})
+  
+ 
+  # m <- leaflet(data = rotte.agg3) %>% addTiles() %>%
+  #   addMarkers(~LON2c, ~LAT2c, popup = ~as.character(DESCRIPTION1),
+  #              icon =greenLeafIcon
+  #              , label = ~as.character(DESCRIPTION1))
+  # m
+
+# gauge(50, min = 0, max = 100, symbol = '%', gaugeSectors(
+#   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+# ))
+# 
+# gauge(50, min = 0, max = 50, gaugeSectors(
+#   success = c(41, 50), warning = c(21, 40), danger = c(0, 20)
+# ))
+# 
+# gauge(50, min = 0, max = 10, gaugeSectors(
+#   success = c(0, 2), warning = c(3, 6), danger = c(7, 10)
+# ))
+```
+
+
+Row {.tabset .tabset-fade}
+-------------------------------------
+    
+   
+### Regionali Arrivo
+
+```{r}
+dygraph(reg.arr.db)
+```   
+ 
+### Regionali Partenze
+    
+```{r}
+dygraph(reg.dep.db)
+```
+
+
+### Internazionali Arrivo
+    
+```{r}
+dygraph(int.arr.db)
+```
+    
+### Internazionali Partenze
+
+```{r}
+dygraph(int.dep.db)
+```
+
+
+### Domestici Arrivo
+    
+```{r}
+dygraph(dom.arr.db)
+
+```
+    
+### Domestici Partenze
+
+```{r}
+dygraph(dom.dep.db)
+
+```
+
+
+
+Previsioni
+=====================================     
+
+
+Inputs {.sidebar}
+-------------------------------------
+
+```{r}
+selectInput("tipoVoli", label = "Tipo di voli:",
+            choices = c("Domestici", "Regionali", "Internazionali"), selected = "Regionali")
+
+radioButtons("tipo", "Tipo:",
+               c("Arrivi" = "arr",
+                 "Partenze" = "partenze",
+                 "Tutti" = "tutti"))
+
+
+sliderInput("anni", label = "Tempo (Anni):",
+            min = 1, max = 10, value = 1, step = 1)
+
+actionButton("run", "Run Analysis", icon("paper-plane"), 
+    style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+```
+
+
+Row
+-------------------------------------
+
+### Grafico Previsioni
+    
+```{r}
+v <- reactiveValues(doPlot = FALSE)
+x <- reactiveValues(doTable = NULL)
+
+observeEvent(input$run, {
+    # 0 will be coerced to FALSE
+    # 1+ will be coerced to TRUE
+    v$doPlot <- input$run
+    x$doTable <- FALSE
+    x$doStats <- FALSE
+  })
+
+renderDygraph({
+    if (v$doPlot == FALSE) return()
+  
+    tSerie <- chooseTimeSeries(input$tipoVoli, input$tipo)
+  
+    withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 2
+        incProgress(1/n, detail = paste("Calcolo Arima"))
+        tWindow <- input$anni * 12
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        incProgress(2/n, detail = paste("Predizioni Arima"))
+        arimaMod.Fr <- forecast(arimaMod, h = tWindow)
+      })
+    
+      # autoplot(arimaMod.Fr, main  = "Predizioni Arima")
+      # dygraph(arimaMod.Fr$mean, main = "Predicted Lung Deaths (UK)")
+      # ggseasonplot(dom.arr.db, main=paste(sep="","Seasonal Plot "))
+    
+      # dfMeanMethod <- data.frame(Y=as.matrix(arimaMod.Fr$mean), date=as.Date(as.yearmon(time(arimaMod.Fr$mean))))
+      # tSerieDF <- data.frame(Y=as.matrix(tSerie), date=as.Date(as.yearmon(time(tSerie))))
+      # mean1 <- mean(dfMeanMethod$Y)
+      # mean2 <- mean(tSerieDF$Y)
+      # 
+      # x$doStats <- ( (mean2[1]/ mean1[1]) * 100) - 100
+      
+      gen_array <- function(forecast_obj){
+
+        actuals <- forecast_obj$x
+        lower <- forecast_obj$lower[,2]
+        upper <- forecast_obj$upper[,2]
+        point_forecast <- forecast_obj$mean
+      
+        cbind(actuals, lower, upper, point_forecast)
+      }
+      x$doTable <- arimaMod.Fr
+      ts_array <- gen_array(arimaMod.Fr)
+      dygraph(ts_array) %>% 
+      dyRangeSelector() %>%
+      # dyRangeSelector(height = 40,
+      #                 dateWindow = c("2011-04-01", "2019-4-01")) %>%
+      dySeries(name = "actuals", label = "actual") %>%
+      dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
+      dyLegend(show = "always", hideOnMouseOut = FALSE) %>%
+      dyHighlight(highlightCircleSize = 5,
+                  highlightSeriesOpts = list(strokeWidth = 2)) %>%
+      dyOptions(axisLineColor = "navy", gridLineColor = "grey")
+      
+      
+      
+
+})
+
+
+# randomVals <- eventReactive(input$run, {
+#     runif(input$bw_adjust)
+#   
+#   
+#   })
+# 
+#   renderPlot({
+#     hist(randomVals())
+#   })
+
+
+
+# renderPlot({
+#   hist(faithful[, 2], breaks = input$bw_adjust)
+# })
+
+```
+  
+Row 
+-------------------------------------
+
+   
+### Tabella Previsioni  
+
+```{r}
+
+renderTable({
+  if(is.null(x$doTable)) return()
+  head( xtable(x$doTable$mean, digits = 0), n = 6 )
+  
+#   temp.table <- xtable(x$doTable$mean, digits = 0)
+# panderOptions('table.split.table', Inf)
+# panderOptions('digits', 4)
+# pander(temp.table, style = "grid", missing = '')
+# temp.table
+}, rownames = TRUE)
+
+
+
+#datatable(iris, options = list(pageLength = 5))
+```
+
+<!-- ### Regionali {.value-box} -->
+<!-- ```{r} -->
+<!-- # dlCount is a reactive expression that keeps track of the total -->
+<!-- # number of rows that have ever appeared through pkgStream. -->
+
+
+<!-- # Emit the download count -->
+<!-- renderValueBox({ -->
+<!--    if(is.null(x$doStats)) return() -->
+<!--   valueBox(paste(x$doStats,"%"), icon = "fa-plane", color = "success") -->
+<!-- }) -->
+<!-- ``` -->
+
+
+Rifornimenti 
+=====================================  
+
+
+Inputs {.sidebar data-width=200}
+-------------------------------------
+
+```{r}
+y <- reactiveValues(doPlot = FALSE)
+z <- reactiveValues(doTable = NULL)
+z <- reactiveValues(doOil = NULL)
+
+z <- reactiveValues(doTable2 = NULL)
+z <- reactiveValues(doOil2 = NULL)
+
+z <- reactiveValues(doTable3 = NULL)
+z <- reactiveValues(doOil3 = NULL)
+
+z <- reactiveValues(doTable4 = NULL)
+z <- reactiveValues(doOil4 = NULL)
+
+z <- reactiveValues(doTable5 = NULL)
+z <- reactiveValues(doOil5 = NULL)
+
+observeEvent(input$runCluster, {
+    # 0 will be coerced to FALSE
+    # 1+ will be coerced to TRUE
+    y$doPlot <- input$runCluster
+  })
+
+sliderInput("cluster", label = "Numero Cluster",
+            min = 1, max = 5, value = 1, step = 1)
+
+actionButton("runCluster", "Run Analysis", icon("paper-plane"),
+    style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+```
+
+
+Column {data-height=400}
+-------------------------------------
+   
+### Clustering
+
+```{r}
+renderPlotly({
+  if (y$doPlot == FALSE) return()
+  
+  
+  withProgress(message = 'Operazioni', value = 0,  {
+    # Number of times we'll go through the loop
+    n <- 5
+    incProgress(1/n, detail = paste("Calcolo DataSet"))
+      
+    voli_rotte2 <- fread("voli_rotte2.csv.csv")
+    voli_rotte2$V1 <- NULL
+  
+    incProgress(2/n, detail = paste("Puslisco DataSet"))
+
+    voli_rotte_clean <- na.omit(voli_rotte2[ , c("MTOW","distanza","ID")])
+    voli_rotte_clean_sd <- voli_rotte_clean[!duplicated(voli_rotte_clean), ]
+    
+    voli_rotte_clean_sd$MTOWTemp <- voli_rotte_clean_sd$MTOW
+    voli_rotte_clean_sd$MTOW <- (voli_rotte_clean_sd$MTOW - mean(voli_rotte_clean_sd$MTOW))/(2*sd(voli_rotte_clean_sd$MTOW))
+    voli_rotte_clean_sd$distanza <- (voli_rotte_clean_sd$distanza - mean(voli_rotte_clean_sd$distanza))/(2*sd(voli_rotte_clean_sd$distanza))
+    
+    voli_rotte_clean_sd <- na.omit(voli_rotte_clean_sd[ , c("MTOW","distanza","ID","MTOWTemp")])
+    voli_rotte_clean_temp <- na.omit(voli_rotte_clean_sd[ , c("MTOW","distanza")])
+    incProgress(3/n, detail = paste("Calcolo Cluster"))
+
+    numCluster <- input$cluster
+    km <- kmeans(voli_rotte_clean_temp, centers = numCluster)
+    
+    
+    incProgress(4/n, detail = paste("Recupero i voli"))
+
+    
+    mappa_cluster <- cbind(na.omit(voli_rotte_clean_sd)$ID,na.omit(voli_rotte_clean_sd)$MTOWTemp, cbind( km$cluster))
+    colnames(mappa_cluster) <- c("ID", "MTOWTemp","CLUSTER")
+
+    dep_joined <- read_csv("deep_joined.csv",
+                          col_types = cols(X1 = col_skip(), CLUSTER= col_skip()))
+
+    dep_joined <- left_join(dep_joined,as.data.frame(mappa_cluster),by=c("DEP_FLIGHT_ID"="ID"))
+
+    incProgress(4/n, detail = paste("Creo Serie storiche"))
+    
+    dfTemClsuter <- dep_joined %>%
+     group_by(CLUSTER) %>%
+     summarise(count=n())
+
+    for (i in seq(1,numCluster)){
+      temp <- dep_joined %>% filter(CLUSTER == i)
+      # temp$STO <- format(temp$STO, format="%Y-%m")
+      # df <- as.data.frame(table(temp$STO))
+      # tserie <- ts(df[,-1], frequency=12, start=c(2003,4), end=c(2017,3))
+      if(i == 1){
+        z$doTable <- temp
+      }
+      if(i == 2){
+        z$doTable2 <- temp
+      }
+      if(i == 3){
+        z$doTable3 <- temp
+      }
+      if(i == 4){
+        z$doTable4 <- temp
+      }
+      if(i == 5){
+        z$doTable5 <- temp
+      }
+    
+    }
+  })
+
+  p <- plot_ly(x = dfTemClsuter$count, y = dfTemClsuter$CLUSTER, type = 'bar', orientation = 'h', color= factor(dfTemClsuter$CLUSTER))
+      p
+  
+  # voli_rotte_clean_sd$cluster <- km$cluster
+  
+  
+  # p <- fviz_cluster(km, voli_rotte_clean_sd, geom = c("point"))
+  
+  # p <- ggplot(voli_rotte_clean_sd, aes(x = distanza,
+  #                  y = MTOW,
+  #                  color = factor(cluster))) +
+  #             geom_point()
+  # p
+ 
+  #fviz_cluster(km, voli_rotte_clean_sd, geom = c("point"))
+ 
+ # mappa_cluster <- cbind(na.omit(voli_rotte2)$ID, km$cluster)
+
+})
+
+```
+
+
+
+Row {.tabset .tabset-fade} 
+-------------------------------------
+### Cluster 1
+```{r}
+renderDygraph({
+  if ( is.null(z$doTable) == TRUE) return()
+  
+    temp <-  z$doTable
+    temp$STO <- format(temp$STO, format="%Y-%m")
+    df <- as.data.frame(table(temp$STO))
+    tserie <- ts(df[,-1], frequency=12, start=c(2003,4), end=c(2017,3))
+  
+    tSerie <- tserie
+  
+    withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 2
+        incProgress(1/n, detail = paste("Calcolo Arima"))
+        tWindow <- 3 * 12
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        incProgress(2/n, detail = paste("Predizioni Arima"))
+        arimaMod.Fr <- forecast(arimaMod, h = tWindow)
+        
+        z$doOil <- sum(arimaMod.Fr$mean)
+      })
+  gen_array <- function(forecast_obj){
+
+        actuals <- forecast_obj$x
+        lower <- forecast_obj$lower[,2]
+        upper <- forecast_obj$upper[,2]
+        point_forecast <- forecast_obj$mean
+
+        cbind(actuals, lower, upper, point_forecast)
+      }
+      ts_array <- gen_array(arimaMod.Fr)
+      dygraph(ts_array) %>%
+      dyRangeSelector() %>%
+      dySeries(name = "actuals", label = "actual") %>%
+      dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
+      dyLegend(show = "always", hideOnMouseOut = FALSE) %>%
+      dyHighlight(highlightCircleSize = 5,
+                  highlightSeriesOpts = list(strokeWidth = 2)) %>%
+      dyOptions(axisLineColor = "navy", gridLineColor = "grey")
+
+})
+```
+
+
+
+### Cluster 2
+```{r}
+renderDygraph({
+  if ( is.null(z$doTable2) == TRUE) return()
+
+    temp <-  z$doTable2
+    temp$STO <- format(temp$STO, format="%Y-%m")
+    df <- as.data.frame(table(temp$STO))
+    tserie <- ts(df[,-1], frequency=12, start=c(2003,4), end=c(2017,3))
+  
+    tSerie <- tserie
+
+    withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 2
+        incProgress(1/n, detail = paste("Calcolo Arima"))
+        tWindow <- 3 * 12
+
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+
+        incProgress(2/n, detail = paste("Predizioni Arima"))
+        arimaMod.Fr <- forecast(arimaMod, h = tWindow)
+        
+        z$doOil2 <- sum(arimaMod.Fr$mean)
+        
+      })
+
+
+      gen_array <- function(forecast_obj){
+
+        actuals <- forecast_obj$x
+        lower <- forecast_obj$lower[,2]
+        upper <- forecast_obj$upper[,2]
+        point_forecast <- forecast_obj$mean
+
+        cbind(actuals, lower, upper, point_forecast)
+      }
+      ts_array <- gen_array(arimaMod.Fr)
+      dygraph(ts_array) %>%
+      dyRangeSelector() %>%
+      dySeries(name = "actuals", label = "actual") %>%
+      dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
+      dyLegend(show = "always", hideOnMouseOut = FALSE) %>%
+      dyHighlight(highlightCircleSize = 5,
+                  highlightSeriesOpts = list(strokeWidth = 2)) %>%
+      dyOptions(axisLineColor = "navy", gridLineColor = "grey")
+
+})
+```
+
+### Cluster 3
+```{r}
+renderDygraph({
+  if ( is.null(z$doTable3) == TRUE) return()
+
+    temp <-  z$doTable3
+    temp$STO <- format(temp$STO, format="%Y-%m")
+    df <- as.data.frame(table(temp$STO))
+    tserie <- ts(df[,-1], frequency=12, start=c(2003,4), end=c(2017,3))
+  
+    tSerie <- tserie
+
+    withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 2
+        incProgress(1/n, detail = paste("Calcolo Arima"))
+        tWindow <- 3 * 12
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        incProgress(2/n, detail = paste("Predizioni Arima"))
+        arimaMod.Fr <- forecast(arimaMod, h = tWindow)
+        z$doOil3 <- sum(arimaMod.Fr$mean)
+      })
+
+
+      gen_array <- function(forecast_obj){
+
+        actuals <- forecast_obj$x
+        lower <- forecast_obj$lower[,2]
+        upper <- forecast_obj$upper[,2]
+        point_forecast <- forecast_obj$mean
+
+        cbind(actuals, lower, upper, point_forecast)
+      }
+      ts_array <- gen_array(arimaMod.Fr)
+      dygraph(ts_array) %>%
+      dyRangeSelector() %>%
+      dySeries(name = "actuals", label = "actual") %>%
+      dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
+      dyLegend(show = "always", hideOnMouseOut = FALSE) %>%
+      dyHighlight(highlightCircleSize = 5,
+                  highlightSeriesOpts = list(strokeWidth = 2)) %>%
+      dyOptions(axisLineColor = "navy", gridLineColor = "grey")
+
+})
+```
+
+### Cluster 4
+```{r}
+renderDygraph({
+  if ( is.null(z$doTable4) == TRUE) return()
+
+    temp <-  z$doTable4
+    temp$STO <- format(temp$STO, format="%Y-%m")
+    df <- as.data.frame(table(temp$STO))
+    tserie <- ts(df[,-1], frequency=12, start=c(2003,4), end=c(2017,3))
+  
+    tSerie <- tserie
+
+    withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 2
+        incProgress(1/n, detail = paste("Calcolo Arima"))
+        tWindow <- 3 * 12
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        incProgress(2/n, detail = paste("Predizioni Arima"))
+        arimaMod.Fr <- forecast(arimaMod, h = tWindow)
+        z$doOil4 <- sum(arimaMod.Fr$mean)
+
+      })
+
+
+      gen_array <- function(forecast_obj){
+
+        actuals <- forecast_obj$x
+        lower <- forecast_obj$lower[,2]
+        upper <- forecast_obj$upper[,2]
+        point_forecast <- forecast_obj$mean
+
+        cbind(actuals, lower, upper, point_forecast)
+      }
+      ts_array <- gen_array(arimaMod.Fr)
+      dygraph(ts_array) %>%
+      dyRangeSelector() %>%
+      dySeries(name = "actuals", label = "actual") %>%
+      dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
+      dyLegend(show = "always", hideOnMouseOut = FALSE) %>%
+      dyHighlight(highlightCircleSize = 5,
+                  highlightSeriesOpts = list(strokeWidth = 2)) %>%
+      dyOptions(axisLineColor = "navy", gridLineColor = "grey")
+
+})
+```
+
+### Cluster 5
+```{r}
+renderDygraph({
+  if ( is.null(z$doTable5) == TRUE) return()
+
+    temp <-  z$doTable5
+    temp$STO <- format(temp$STO, format="%Y-%m")
+    df <- as.data.frame(table(temp$STO))
+    tserie <- ts(df[,-1], frequency=12, start=c(2003,4), end=c(2017,3))
+  
+    tSerie <- tserie
+
+    withProgress(message = 'Operazioni', value = 0,  {
+        # Number of times we'll go through the loop
+        n <- 2
+        incProgress(1/n, detail = paste("Calcolo Arima"))
+        tWindow <- 3 * 12
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        incProgress(2/n, detail = paste("Predizioni Arima"))
+        arimaMod.Fr <- forecast(arimaMod, h = tWindow)
+        z$doOil5 <- sum(arimaMod.Fr$mean)
+
+      })
+
+
+      gen_array <- function(forecast_obj){
+
+        actuals <- forecast_obj$x
+        lower <- forecast_obj$lower[,2]
+        upper <- forecast_obj$upper[,2]
+        point_forecast <- forecast_obj$mean
+
+        cbind(actuals, lower, upper, point_forecast)
+      }
+      ts_array <- gen_array(arimaMod.Fr)
+      dygraph(ts_array) %>%
+      dyRangeSelector() %>%
+      dySeries(name = "actuals", label = "actual") %>%
+      dySeries(c("lower","point_forecast","upper"), label = "Predicted") %>%
+      dyLegend(show = "always", hideOnMouseOut = FALSE) %>%
+      dyHighlight(highlightCircleSize = 5,
+                  highlightSeriesOpts = list(strokeWidth = 2)) %>%
+      dyOptions(axisLineColor = "navy", gridLineColor = "grey")
+
+})
+```
+
+
+
+
+Row
+-----------------------------------------------------------------------
+### Oil Cluster 1 {.value-box}
+
+```{r}
+renderGauge({
+  if ( is.null(z$doTable) == TRUE) return()
+  if ( is.null(z$doOil) == TRUE) return()
+  
+  rate <- calculateMean(z$doTable, 1)
+  
+  x <- rate$tuttiVoliTS
+  y <- rate$mediaOlioVoliTS
+  print(x)
+  print(y)
+  
+  z <- z$doOil
+  print(z)
+  w <- (y * z) / x
+  print(w)
+  print((( (w/y) * 100 ) - 100))
+  gauge(  as.integer((( (w/y) * 100 ) - 100)), min = 0, max = 100, symbol = '%', gaugeSectors(
+    success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+  ))
+})
+```
+
+### Oil Cluster 2 {.value-box}
+
+```{r}
+renderGauge({
+  if ( is.null(z$doTable2) == TRUE) return()
+  if ( is.null(z$doOil2) == TRUE) return()
+  
+  rate <- calculateMean(z$doTable2, 2)
+  
+  x <- rate$tuttiVoliTS
+  y <- rate$mediaOlioVoliTS
+  print(x)
+  print(y)
+  
+  z <- z$doOil2
+  print(z)
+  w <- (y * z) / x
+  print(w)
+  print((( (w/y) * 100 ) - 100))
+  gauge(  as.integer((( (w/y) * 100 ) - 100)), min = 0, max = 100, symbol = '%', gaugeSectors(
+    success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+  ))
+})
+```
+
+### Oil Cluster 3 {.value-box}
+
+```{r}
+renderGauge({
+  if ( is.null(z$doTable3) == TRUE) return()
+  if ( is.null(z$doOil3) == TRUE) return()
+  
+  rate <- calculateMean(z$doTable3, 3)
+  
+  x <- rate$tuttiVoliTS
+  y <- rate$mediaOlioVoliTS
+  print(x)
+  print(y)
+  
+  z <- z$doOil3
+  print(z)
+  w <- (y * z) / x
+  print(w)
+  print((( (w/y) * 100 ) - 100))
+  gauge(  as.integer((( (w/y) * 100 ) - 100)), min = 0, max = 100, symbol = '%', gaugeSectors(
+    success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+  ))
+})
+```
+
+### Oil Cluster 4 {.value-box}
+
+```{r}
+renderGauge({
+  if ( is.null(z$doTable4) == TRUE) return()
+  if ( is.null(z$doOil4) == TRUE) return()
+  
+  rate <- calculateMean(z$doTable4, 4)
+  
+  x <- rate$tuttiVoliTS
+  y <- rate$mediaOlioVoliTS
+  print(x)
+  print(y)
+  
+  z <- z$doOil4
+  print(z)
+  w <- (y * z) / x
+  print(w)
+  print((( (w/y) * 100 ) - 100))
+  gauge(  as.integer((( (w/y) * 100 ) - 100)), min = 0, max = 100, symbol = '%', gaugeSectors(
+    success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+  ))
+})
+```
+
+### Oil Cluster 5 {.value-box}
+
+```{r}
+renderGauge({
+  if ( is.null(z$doTable5) == TRUE) return()
+  if ( is.null(z$doOil5) == TRUE) return()
+  
+  rate <- calculateMean(z$doTable5, 5)
+  
+  x <- rate$tuttiVoliTS
+  y <- rate$mediaOlioVoliTS
+  print(x)
+  print(y)
+  
+  z <- z$doOil5
+  print(z)
+  w <- (y * z) / x
+  print(w)
+  print((( (w/y) * 100 ) - 100))
+  gauge(  as.integer((( (w/y) * 100 ) - 100)), min = 0, max = 100, symbol = '%', gaugeSectors(
+    success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+  ))
+})
+```
+
+
+

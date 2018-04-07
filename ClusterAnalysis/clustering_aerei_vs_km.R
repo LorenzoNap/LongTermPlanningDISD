@@ -53,11 +53,15 @@ voli_rotte_clean <- na.omit(voli_rotte2[ , c("MTOW","distanza")])
 
 # Standardizzazione esiste la funzione di scale
 
-# voli_rotte_clean_sd <- scale(voli_rotte_clean)
+
+
+# 
 # voli_rotte_clean_sd <- unique(voli_rotte_clean)
 voli_rotte_clean <- voli_rotte_clean[!duplicated(voli_rotte_clean), ]
-voli_rotte_clean_sd$MTOW <- (voli_rotte_clean$MTOW - mean(voli_rotte_clean$MTOW))/(2*sd(voli_rotte_clean$MTOW))
-voli_rotte_clean_sd$distanza <- (voli_rotte_clean$distanza - mean(voli_rotte_clean$distanza))/(2*sd(voli_rotte_clean$distanza))
+voli_rotte_clean_sd <- scale(voli_rotte_clean)
+
+# voli_rotte_clean_sd$MTOW <- (voli_rotte_clean_sd$MTOW - mean(voli_rotte_clean_sd$MTOW))/(2*sd(voli_rotte_clean_sd$MTOW))
+# voli_rotte_clean_sd$distanza <- (voli_rotte_clean_sd$distanza - mean(voli_rotte_clean_sd$distanza))/(2*sd(voli_rotte_clean_sd$distanza))
  # elimino i duplicati
 #
 kvoli_rotte2.3 <- kmeans(voli_rotte_clean_sd, 3, nstart = 30)

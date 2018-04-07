@@ -1,22 +1,8 @@
 # ESTRAZIONE DATI DA DB JNB -----------------------------------------------
 # Collegati al db di SQL 2016
 library(RODBC)
-dbhandle <-odbcDriverConnect(connection="Driver={SQL Server};server=DESKTOP-HH30FVF;database=AMs516;trusted_connection=yes;")
-
-# Scarica le serie storiche a partire dalla stessa data di cui alle serie precedenti.
-
-#reg.dep.aflight<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
-#                           FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
-#                           WHERE A_FLIGHT.ID in
-#                           (SELECT A_MOVEMENT.DEP_FLIGHT_ID
-#                           FROM [AMS516].[dbo].[A_MOVEMENT] 
-#                           INNER JOIN A_FLIGHT ON DEP_FLIGHT_ID=A_FLIGHT.ID)
-#                           and S_ROUTE.FLIGHT_TYPE_ID=1
-#                           and A_FLIGHT.STO between '20120401' and '20171231'
-#                           and A_FLIGHT.QUALIFIER_ID=1
-#                           and A_FLIGHT.EXCEPTION_ID is null
-#                           GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
-#                           order by ANNO, MESE;")
+source("./parametriConnessioniFile.R")
+dbhandle <-odbcDriverConnect(connection=param.connessione.db)
 
 
 a_flight   <- sqlQuery(dbhandle, "SELECT * FROM A_FLIGHT")
@@ -33,10 +19,36 @@ dep_joined <-rbind(
 #
 dep_joined <- left_join(dep_joined,as.data.frame(mappa_cluster),by=c("DEP_FLIGHT_ID"="ID"))
 #
-head(dep_joined)
 
-source("time_series_analysis_from_clusters.r")
-printCluster(kvoli_rotte, voli_rotte_clean)
+library("cluster")
+library(factoextra)
+
+# set.seed(123)
+# # Compute the gap statistic
+# gap_stat <- clusGap(voli_rotte_clean, FUN = kmeans, nstart = 25, 
+#                     K.max = 10, B = 10) 
+# fviz_gap_stat(gap_stat)
+# 
+# 
+# fviz_cluster(kvoli_rotte, voli_rotte_clean, geom = c("point"))
+# 
+# sil <- silhouette(kvoli_rotte$cluster, dist(voli_rotte_clean))
+# fviz_silhouette(sil)
+
+
+
+
+source("./NuovaAnalisiDaCluster//time_series_analysis_from_clusters.r")
+source("./AnalisiSerieStoriche//SerieStoricheFunctions.r")
+
+pathFile <- "./NuovaAnalisiDaCluster//resultAnalysis//"
+
+
+printCluster(kvoli_rotte, voli_rotte_clean, pathFile)
+
+
+#questa funzione ci mette un infinita' di tempo
+#clusteringFunctions(kvoli_rotte, voli_rotte_clean, pathFile)
 
 #itera sul numero di cluster
 for (i in seq(1,n_cluster)) {
@@ -49,17 +61,23 @@ for (i in seq(1,n_cluster)) {
   df <- as.data.frame(table(x$STO))
   #crea la serie storica
   tserie <- ts(df[,-1], frequency=12, start=c(2003,4), end=c(2017,3))
+  
+  #crea la sub directory
+  dir.create(file.path(pathFile, paste("Cluster", i, sep="")), showWarnings = FALSE)
+  
+  pathFileTemp <- paste(pathFile, paste("Cluster", i,"//", sep=""), sep="")
+  
+  tWindow <- 36
   #visualizza i plot della serie storica
-  plotTimeseries(tserie, paste("#Voli Cluster ",i))
+  plotTimeseries(tserie,paste("Flight Cluster",i) ,pathFileTemp,TRUE)
   #cerca il miglior modello tra "Mean method","Naive method","Drift method", "Seasonal naive method"
-  models <- plotForecastTrainingSet(tserie, 36, paste("#Voli Cluster ",i))
+  plotForecastTrainingSet(tserie, tWindow, paste("Flight Cluster",i) ,pathFileTemp, TRUE)
   #visualizza arima
-  arimaModel <- plotArimaModel(tserie, 36, paste("#Voli Cluster ",i))
+  plotArimaModel(tserie, tWindow, paste("Flight Cluster",i) ,pathFileTemp, TRUE)
   #prendi il miglior modello
-  bestModel <- evaluateBesModel(tserie, 36, paste("#Voli Cluster ",i))
+  bestModel <- evaluateBesModel(tserie, tWindow, paste("Flight Cluster",i),pathFileTemp, save = TRUE)
   #print del modello migliore
-  print( paste("Il miglior modello in base alle misure di errore per", paste("#Voli Cluster",i),"e' ",bestModel ))
-  #names(temp.table)[which.min(apply(temp.table[5,],MARGIN=2,min))]
+  print( paste("Il miglior modello in base alle misure di errore per", "Serie Storica Reg Arr","e'",bestModel ))
   
 }
 
