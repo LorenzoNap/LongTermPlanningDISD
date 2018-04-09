@@ -384,58 +384,39 @@ plotBestModel<- function(model, sr, tWindow, title,path, save = TRUE){
   if(model == 'Arima'){
     arimaMod <- auto.arima(sr, stepwise=FALSE, approximation=FALSE)
     arimaMod.Fr <- forecast(arimaMod, h=tWindow)
-<<<<<<< HEAD
     if(save){
       jpeg(paste(path,"Best Model con Arima - ", title,".jpg", sep=""), width = 800)
     }
     plot(arimaMod.Fr, main=paste('Arima', title), ylab="Number of flights", xlab= 'Time')
     if(save){
       dev.off()
-=======
-    autoplot(arimaMod.Fr, main=paste('Arima', title), ylab="Number of flights", xlab= 'Time')
-    if(save){
-      ggsave(file=paste(path,"Best Model con Arima - ", title,".jpg", sep=""))
->>>>>>> devLorenzo
     }
   }
   if(model == 'Drift method'){
     driftMethod <- snaive(sr,h=tWindow)
     driftMethod.Fr <- forecast(driftMethod, h=tWindow)
-<<<<<<< HEAD
     if(save){
       jpeg(paste(path,"Best Model con Drift method - ", title,".jpg", sep=""), width = 800)
     }
     plot(driftMethod.Fr, main=paste('Drift method', title), ylab="Number of flights", xlab= 'Time')
     if(save){
       dev.off()
-=======
-    autoplot(driftMethod.Fr, main=paste('Drift method', title), ylab="Number of flights", xlab= 'Time')
-    if(save){
-      ggsave(file=paste(path,"Best Model con Drift method - ", title,".jpg", sep=""))
->>>>>>> devLorenzo
     }
   }
   if(model == 'SNaive Method'){
     sNaiveMethod <- rwf(sr,drift=TRUE,h=tWindow)
     sNaiveMethod.Fr <- forecast(sNaiveMethod, h=tWindow)
-<<<<<<< HEAD
     if(save){
       jpeg(paste(path,"Best Model con SNaive Method - ", title,".jpg", sep=""), width = 800)
     }
     plot(sNaiveMethod.Fr, main=paste('SNaive Method', title), ylab="Number of flights", xlab= 'Time')
     if(save){
       dev.off()
-=======
-    autoplot(sNaiveMethod.Fr, main=paste('SNaive Method', title), ylab="Number of flights", xlab= 'Time')
-    if(save){
-      ggsave(file=paste(path,"Best Model con SNaive Method - ", title,".jpg", sep=""))
->>>>>>> devLorenzo
     }
   }
   if(model == 'Naive Method'){
     naiveMethod <- rwf(sr,h=tWindow)
     naiveMethod.Fr <- forecast(naiveMethod, h=tWindow)
-<<<<<<< HEAD
     if(save){
       jpeg(paste(path,"Best Model con Naive Method - ", title,".jpg", sep=""), width = 800)
     }
@@ -443,28 +424,16 @@ plotBestModel<- function(model, sr, tWindow, title,path, save = TRUE){
     if(save){
       dev.off()
       }
-=======
-    autoplot(naiveMethod.Fr, main=paste('Naive Method', title), ylab="Number of flights", xlab= 'Time')
-    if(save){
-      ggsave(file=paste(path,"Best Model con Naive Method - ", title,".jpg", sep=""))
-    }
->>>>>>> devLorenzo
   }
   if(model == 'Average Method'){
     meanMethod <- meanf(sr,h=tWindow)
     meanMethod.Fr <- forecast(meanMethod, h=tWindow)
-<<<<<<< HEAD
     if(save){
       jpeg(paste(path,"Best Model con Average Method - ", title,".jpg", sep=""), width = 800)
     }
     plot(meanMethod.Fr, main=paste('Average Method', title), ylab="Number of flights", xlab= 'Time')
     if(save){
       dev.off()
-=======
-    autoplot(meanMethod.Fr, main=paste('Average Method', title), ylab="Number of flights", xlab= 'Time')
-    if(save){
-      ggsave(file=paste(path,"Best Model con Average Method - ", title,".jpg", sep=""))
->>>>>>> devLorenzo
     }
   }
 }
