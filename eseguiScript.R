@@ -15,4 +15,4 @@ source("AnalisiDatabaseDataMining\\AnalisiRegressioneLineare\\regressione_linear
 #Modulo3.2 - Cluster analysis
 source("ClusterAnalysis\\clustering_aerei_vs_km.R", echo = TRUE)
 #Modulo3.2 - Analisi Serie Storiche
-source("NuovaAnalisiDaCluster\\time_series_analysis_from_clusters.R", echo = TRUE)
+source("NuovaAnalisiDaCluster\\flight_secondo_cluster_lorenzo.R", echo = TRUE)

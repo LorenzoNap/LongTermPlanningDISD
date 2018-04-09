@@ -52,24 +52,28 @@ Row {data-height=200}
 ### Regionali {.value-box}
 
 ```{r}
+regTot <- format(total[1,]$NumeroVoli, digits=9, decimal.mark=",",big.mark="'",small.mark=".", small.interval=3)
 renderValueBox({
-  valueBox(total[1,]$NumeroVoli, icon = "fa-plane", color = "success")
+  valueBox(regTot, icon = "fa-plane", color = "success")
 })
 ```
 
 ### Internazionali {.value-box}
 
 ```{r}
+intTot <- format(total[2,]$NumeroVoli, digits=9, decimal.mark=",",big.mark="'",small.mark=".", small.interval=3)
+
 renderValueBox({
-  valueBox(total[2,]$NumeroVoli, icon = "fa-plane", color = "orange")
+  valueBox(intTot, icon = "fa-plane", color = "orange")
 })
 ```
 
 ### Domestici {.value-box}
 
 ```{r}
+domTot <- format(total[3,]$NumeroVoli, digits=9, decimal.mark=",",big.mark="'",small.mark=".", small.interval=3)
 renderValueBox({
-  valueBox(total[3,]$NumeroVoli, icon = "fa-plane", color = "primary")
+  valueBox(domTot, icon = "fa-plane", color = "primary")
 })
 ```
 
@@ -125,7 +129,7 @@ renderLeaflet({
   for (row in 1:nrow(rotte.agg3)) {
     lon <- rotte.agg3[row, "LON2c"]
     lat  <- rotte.agg3[row, "LAT2c"]
-    inter1 <- gcIntermediate(c(lonTambo, latTambo), c(lon, lat), n=200,      addStartEnd=TRUE, sp = TRUE, breakAtDateLine = TRUE)
+    inter1 <- gcIntermediate(c(lonTambo, latTambo), c(lon, lat), n=200, addStartEnd=TRUE, sp = TRUE, breakAtDateLine = TRUE)
     vector[row] <- inter1
   }
   
@@ -261,7 +265,7 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- input$anni * 12
-        arimaMod <- auto.arima(tSerie)
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
       })
@@ -518,7 +522,7 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- 3 * 12
-        arimaMod <- auto.arima(tSerie)
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
         
@@ -565,7 +569,9 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- 3 * 12
-        arimaMod <- auto.arima(tSerie)
+
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
         
@@ -613,7 +619,7 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- 3 * 12
-        arimaMod <- auto.arima(tSerie)
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
         z$doOil3 <- sum(arimaMod.Fr$mean)
@@ -659,7 +665,7 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- 3 * 12
-        arimaMod <- auto.arima(tSerie)
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
         z$doOil4 <- sum(arimaMod.Fr$mean)
@@ -706,7 +712,7 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- 3 * 12
-        arimaMod <- auto.arima(tSerie)
+        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
         z$doOil5 <- sum(arimaMod.Fr$mean)

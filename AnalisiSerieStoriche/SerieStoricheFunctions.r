@@ -10,6 +10,8 @@ library(gtable)
 library(fpp)
 library(ggfortify)
 
+widthGraphs <- 10
+
 
 plotTimeseries <- function(tserie, title, path, save = TRUE) {
   # Plot della serie storica passata in input
@@ -21,27 +23,32 @@ plotTimeseries <- function(tserie, title, path, save = TRUE) {
   df <- data.frame(Y=as.matrix(tserie), date=as.Date(as.yearmon(time(tserie))))
   
   ggplot(df, aes(x=date)) + 
-    geom_line(aes(y=Y, color="Voli")) + 
+    geom_line(aes(y=Y), color="blue") + 
     labs(title=title, 
-         subtitle=paste("Serie Storica",title),
+         y="Number of Flights", x = "Time",
+         subtitle=paste("Time series"),
          color=NULL) +  # title and caption
-    scale_x_date(date_labels="%b %Y", date_breaks  ="4 month") +  # change to monthly ticks and labels
-    scale_colour_manual(name="Serie",
-                        values=c("#00ba38", "#f8766d")) +  # line color
+    scale_x_date(date_labels="%b %Y", date_breaks  ="4 month") +  # line color
     theme(axis.text.x = element_text(angle = 90, vjust=0.5, size = 8),  # rotate x axis text
           panel.grid.minor = element_blank())
   
   
   if(save){
-    ggsave(paste(path,title,".jpg", sep=""))
-  
+    ggsave(paste(path,title,".jpg", sep=""), width = widthGraphs)
   }
   
   ggseasonplot(tserie, main=paste(sep="","Seasonal Plot ",title))
   
   if(save){
-    ggsave(paste(path,"Boxplot ", title,".jpg", sep=""))
+    ggsave(paste(path,"Boxplot ", title,".jpg", sep=""), width = widthGraphs)
   }
+  
+  autoplot(decompose(tserie), main= paste("Decomposition", title))
+  
+  if(save){
+    ggsave(paste(path,"Decomposition ", title,".jpg", sep=""), width = widthGraphs)
+  }
+  
 }
 
 
@@ -88,13 +95,16 @@ plotForecastTrainingSet <- function(tserie, tWindow = 36, title, path, save = TR
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
     geom_line(data=dfSr, aes(date, Y,  color="Test Set"), size = 0.5)+
     labs(title=title, 
-         subtitle = "Pedizioni Dopo Training Set",
-         y="Numero voli", x = "Data")+
-    scale_colour_manual(name="Metodi",
+         subtitle = "Prediction after Training Set",
+         y="Number of Flights", x = "Time")+
+    scale_x_date(date_labels="%b %Y", date_breaks  ="4 month") +  # line color
+    theme(axis.text.x = element_text(angle = 90, vjust=0.5, size = 8),  # rotate x axis text
+          panel.grid.minor = element_blank()) +
+    scale_colour_manual(name="Methods", 
                         values=c("purple", "red", "green", "orange", "brown2", "blue"))
 
   if(save){
-    ggsave(paste(path,"Predizioni Dopo Training Set-", title,".jpg", sep=""))
+    ggsave(paste(path,"Predizioni Dopo Training Set-", title,".jpg", sep=""), width = widthGraphs)
   }
   
   ggplot() +
@@ -105,13 +115,16 @@ plotForecastTrainingSet <- function(tserie, tWindow = 36, title, path, save = TR
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
     geom_line(data=dfSer, aes(date, Y,  color="Test Set"), size = 0.5)+
     labs(title=title, 
-         subtitle = "Confronto Predizioni su Test Set",
-         y="Numero voli", x = "Data")+
-    scale_colour_manual(name="Metodi",
+         subtitle = "Predictions Comparison Test Set",
+         y="Number of Flights", x = "Time")+
+    scale_x_date(date_labels="%b %Y", date_breaks  ="4 month") +  # line color
+    theme(axis.text.x = element_text(angle = 90, vjust=0.5, size = 8),  # rotate x axis text
+          panel.grid.minor = element_blank())+
+    scale_colour_manual(name="Methods",
                         values=c("purple", "red", "green", "orange", "brown2","blue"))
   
   if(save){
-    ggsave(paste(path,"Confronto Predizioni su Test Set-", title,".jpg", sep=""))
+    ggsave(paste(path,"Confronto Predizioni su Test Set-", title,".jpg", sep=""), width = widthGraphs)
   }
   
   
@@ -140,14 +153,17 @@ plotForecastTrainingSet <- function(tserie, tWindow = 36, title, path, save = TR
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
     geom_line(data=dfSerie, aes(date, Y,  color="Test Set"), size = 0.5)+
     labs(title=title, 
-         subtitle = "Confronto Predizioni su serie completa",
-         y="Numero voli", x = "Data")+
+         subtitle = "Predictions Comparison Time Series",
+         y="Number of Flights", x = "Time")+
+    scale_x_date(date_labels="%b %Y", date_breaks  ="4 month") +  # line color
+    theme(axis.text.x = element_text(angle = 90, vjust=0.5, size = 8),  # rotate x axis text
+          panel.grid.minor = element_blank())+
     geom_vline(xintercept = as.numeric(as.Date("2017-03-01")),color="red" ,size = 0.5,linetype=4)+
-    scale_colour_manual(name="Metodi",
+    scale_colour_manual(name="Methods",
                         values=c("purple", "red", "green", "orange", "brown2","blue"))
   
   if(save){
-    ggsave(paste(path,"Confronto Predizioni su serie completa-", title,".jpg",sep=""))
+    ggsave(paste(path,"Confronto Predizioni su serie completa-", title,".jpg",sep=""), width = widthGraphs)
   }
   
 }
@@ -179,29 +195,35 @@ plotArimaModel <- function(tserie, tWindow, title, path, save = TRUE){
   ggplot() +
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
     geom_line(data=dfAllSeries, aes(date, Y,  color="Test Set"), size = 0.5)+
-    labs(title=paste("Confronto Arima su Training Set",title), 
+    labs(title=paste("Arima Predictions Comparison Training Set",title), 
          subtitle = arimaMod.Fr$method,
-         y="Numero voli", x = "Data")+
-    scale_colour_manual(name="Metodi",
+         y="Number of Flights", x = "Time")+
+    scale_x_date(date_labels="%b %Y", date_breaks  ="4 month") +  # line color
+    theme(axis.text.x = element_text(angle = 90, vjust=0.5, size = 8),  # rotate x axis text
+          panel.grid.minor = element_blank())+
+    scale_colour_manual(name="Methods",
                         values=c("red", "blue"))
   
   
   if(save){
-    ggsave(paste(path, arimaMod.Fr$method , title,".jpg", sep=""))
+    ggsave(paste(path, arimaMod.Fr$method , title,".jpg", sep=""), width = widthGraphs)
   }
   
  
   ggplot() +
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
     geom_line(data=dftestData, aes(date, Y,  color="Test Set"), size = 0.5)+
-    labs(title=paste("Confronto Arima su Test Set",title), 
+    labs(title=paste("Arima Predictions Comparison Test Set",title), 
          subtitle = arimaMod.Fr$method,
-         y="Numero voli", x = "Data")+
-    scale_colour_manual(name="Metodi",
+         y="Number of Flights", x = "Time")+
+    scale_x_date(date_labels="%b %Y", date_breaks  ="4 month") +  # line color
+    theme(axis.text.x = element_text(angle = 90, vjust=0.5, size = 8),  # rotate x axis text
+          panel.grid.minor = element_blank())+
+    scale_colour_manual(name="Methods",
                         values=c("red", "blue"))
   
   if(save){
-    ggsave(paste(path, "Confronto Arima su Test Set",title,".jpg", sep=""))
+    ggsave(paste(path, "Confronto Arima su Test Set",title,".jpg", sep=""), width = widthGraphs)
   }
   
   #serie completa
@@ -213,16 +235,19 @@ plotArimaModel <- function(tserie, tWindow, title, path, save = TRUE){
   
   ggplot() +
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
-    geom_line(data=dfSerie, aes(date, Y,  color="Serie Completa"), size = 0.5)+
-    labs(title=paste("Confronto Arima su Serie Completa",title), 
+    geom_line(data=dfSerie, aes(date, Y,  color="Time Series"), size = 0.5)+
+    labs(title=paste("Arima Predictions Comparison Time Series",title), 
          subtitle = arimaMod.Fr$method,
-         y="Numero voli", x = "Data")+
+         y="Number of Flights", x = "Time")+
+    scale_x_date(date_labels="%b %Y", date_breaks  ="4 month") +  # line color
+    theme(axis.text.x = element_text(angle = 90, vjust=0.5, size = 8),  # rotate x axis text
+          panel.grid.minor = element_blank())+
     geom_vline(xintercept = as.numeric(as.Date("2017-03-01")),color="red" ,size = 0.5,linetype=4)+
-    scale_colour_manual(name="Metodi",
+    scale_colour_manual(name="Methods",
                         values=c("red", "blue"))
   
   if(save){
-    ggsave(paste(path, "Confronto Arima su Serie Completa",title,".jpg", sep=""))
+    ggsave(paste(path, "Confronto Arima su Serie Completa",title,".jpg", sep=""),width = widthGraphs)
   }
   
 }
@@ -295,7 +320,7 @@ evaluateBesModel <- function(tserie, tWindow, title,path, save = TRUE){
   
   
   if(save){
-    ggsave(file=paste(path,"Errori Test Set-", title,".jpg", sep=""), grid.draw(table))
+    ggsave(file=paste(path,"Errori Test Set-", title,".jpg", sep=""), grid.draw(table),width = widthGraphs)
   }else{
     grid.newpage()
     grid.draw(table)

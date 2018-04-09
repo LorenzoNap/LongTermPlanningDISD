@@ -28,15 +28,15 @@ timeSeriesAnalysis <- function(tSerie, title, path, tWindow, saveFile){
   
 }
 
-#arrivi regionali
-timeSeriesAnalysis(reg.arr.db, "Serie Storica Reg Arr","./AnalisiSerieStoriche//resultAnalysis//ArrReg//", 36, saveFile)
-#partenze regionali
-timeSeriesAnalysis(reg.arr.db, "Serie Storica Dep Arr","./AnalisiSerieStoriche//resultAnalysis//DepReg//", 36, saveFile)
+# arrivi regionali
+timeSeriesAnalysis(reg.arr.db, "Regional Arrival Time Series","./AnalisiSerieStoriche//resultAnalysis//ArrReg//", 36, saveFile)
+# partenze regionali
+timeSeriesAnalysis(reg.dep.db, "Regional Departure Time Series","./AnalisiSerieStoriche//resultAnalysis//DepReg//", 36, saveFile)
 #arrivi int
-timeSeriesAnalysis(reg.arr.db, "Serie Storica Int Arr","./AnalisiSerieStoriche//resultAnalysis//ArrInt//", 36, saveFile)
+timeSeriesAnalysis(int.arr.db, "International Arrival Time Series","./AnalisiSerieStoriche//resultAnalysis//ArrInt//", 36, saveFile)
 #partenze int
-timeSeriesAnalysis(reg.arr.db, "Serie Storica Int Dep","./AnalisiSerieStoriche//resultAnalysis//DepInt//", 36, saveFile)
+timeSeriesAnalysis(int.dep.db, "International Departure Time Serie","./AnalisiSerieStoriche//resultAnalysis//DepInt//", 36, saveFile)
 #arrivi dom
-timeSeriesAnalysis(reg.arr.db, "Serie Storica Dom Arr","./AnalisiSerieStoriche//resultAnalysis//ArrDom//", 36)
+timeSeriesAnalysis(dom.arr.db, "Domestic Arrival Time Series","./AnalisiSerieStoriche//resultAnalysis//ArrDom//", 36, saveFile)
 #partenze dom
-timeSeriesAnalysis(reg.arr.db, "Serie Storica Dom Dep","./AnalisiSerieStoriche//resultAnalysis//DepDom//", 36)
+timeSeriesAnalysis(dom.dep.db, "Domestic Departure Time Series","./AnalisiSerieStoriche//resultAnalysis//DepDom//", 36, saveFile)
