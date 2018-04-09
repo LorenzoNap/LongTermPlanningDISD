@@ -49,6 +49,45 @@ plotTimeseries <- function(tserie, title, path, save = TRUE) {
     ggsave(paste(path,"Decomposition ", title,".jpg", sep=""), width = widthGraphs)
   }
   
+  dir.create(file.path(path, "CorrelationPlots//"), showWarnings = FALSE)
+  
+  
+  #ACF e PACF
+  require(cowplot)
+  
+  plot_grid(ggAcf(tserie, main=paste("ACF", title)), ggPacf(tserie, main=paste("PACF", title)))
+  if(save){
+    ggsave(paste(paste(path, "CorrelationPlots//", sep = ""),"1 ACF_PACF plot ", title,".jpg", sep=""), width = widthGraphs)
+  }
+  
+  #detrend time series
+  tserieDeTrend <- stl(tserie, s.window = 'periodic')$time.series[,2]
+  tserieDeTrend <- tserie - tserieDeTrend
+  autoplot(tserieDeTrend, main=paste("Detrend ", title), ylab = "Number of Flights", xlab="time")
+
+  if(save){
+    ggsave(paste(paste(path, "CorrelationPlots//", sep = ""),"2 Detrend ", title,".jpg", sep=""), width = widthGraphs)
+  }  
+  
+  #PACF e ACF detrend
+  plot_grid(ggAcf(tserieDeTrend, main=paste("ACF Detrend", title)), ggPacf(tserieDeTrend, main=paste("PACF Detrend", title)))
+  if(save){
+    ggsave(paste(paste(path, "CorrelationPlots//", sep = ""),"3 ACF_PACF Detrend plot ", title,".jpg", sep=""), width = widthGraphs)
+  }
+  
+  #remove season
+  tserieDeTrendDeSeason <- diff(tserieDeTrend, lG = 12)
+  autoplot(tserieDeTrendDeSeason, main=paste("Detrend, Deseason ", title), ylab = "Number of Flights", xlab="time")
+  if(save){
+    ggsave(paste(paste(path, "CorrelationPlots//", sep = ""),"4 Detrend, DeSeason ", title,".jpg", sep=""), width = widthGraphs)
+  }
+  #ACF e PACF
+  plot_grid(ggAcf(tserieDeTrendDeSeason, main=paste("ACF Detrend, DeSeason", title)), ggPacf(tserieDeTrendDeSeason, main=paste("PACF Detrend, DeSeason", title)))
+  if(save){
+    ggsave(paste(paste(path, "CorrelationPlots//", sep = ""),"5 ACF_PACF Detrend, DeSeason plot ", title,".jpg", sep=""), width = widthGraphs)
+  }
+  
+  
 }
 
 
@@ -285,11 +324,11 @@ evaluateBesModel <- function(tserie, tWindow, title,path, save = TRUE){
   a5 = accuracy(arimaMod.Fr, ser)
   
   keeps <- c("ME", "RMSE", "MAE", "MPE", "MAPE")
-  a1 <- a1[1,keeps, drop = FALSE]
-  a2 <- a2[1,keeps, drop = FALSE]
-  a3 <- a3[1,keeps, drop = FALSE]
-  a4 <- a4[1,keeps, drop = FALSE]
-  a5 <- a5[1,keeps, drop = FALSE]
+  a1 <- a1[2,keeps, drop = FALSE]
+  a2 <- a2[2,keeps, drop = FALSE]
+  a3 <- a3[2,keeps, drop = FALSE]
+  a4 <- a4[2,keeps, drop = FALSE]
+  a5 <- a5[2,keeps, drop = FALSE]
   
   temp.table <- as.data.frame(cbind(a1[1, ], a2[1, ], a3[1, ], a4[1, ], a5[1, ]))
   
@@ -347,7 +386,7 @@ plotBestModel<- function(model, sr, tWindow, title,path, save = TRUE){
     arimaMod.Fr <- forecast(arimaMod, h=tWindow)
     autoplot(arimaMod.Fr, main=paste('Arima', title), ylab="Number of flights", xlab= 'Time')
     if(save){
-      ggsave(file=paste(path,"Predizioni Finali con Arima - ", title,".jpg", sep=""))
+      ggsave(file=paste(path,"Best Model con Arima - ", title,".jpg", sep=""))
     }
   }
   if(model == 'Drift method'){
@@ -355,7 +394,7 @@ plotBestModel<- function(model, sr, tWindow, title,path, save = TRUE){
     driftMethod.Fr <- forecast(driftMethod, h=tWindow)
     autoplot(driftMethod.Fr, main=paste('Drift method', title), ylab="Number of flights", xlab= 'Time')
     if(save){
-      ggsave(file=paste(path,"Predizioni Finali con Drift method - ", title,".jpg", sep=""))
+      ggsave(file=paste(path,"Best Model con Drift method - ", title,".jpg", sep=""))
     }
   }
   if(model == 'SNaive Method'){
@@ -363,7 +402,7 @@ plotBestModel<- function(model, sr, tWindow, title,path, save = TRUE){
     sNaiveMethod.Fr <- forecast(sNaiveMethod, h=tWindow)
     autoplot(sNaiveMethod.Fr, main=paste('SNaive Method', title), ylab="Number of flights", xlab= 'Time')
     if(save){
-      ggsave(file=paste(path,"Predizioni Finali con SNaive Method - ", title,".jpg", sep=""))
+      ggsave(file=paste(path,"Best Model con SNaive Method - ", title,".jpg", sep=""))
     }
   }
   if(model == 'Naive Method'){
@@ -371,7 +410,7 @@ plotBestModel<- function(model, sr, tWindow, title,path, save = TRUE){
     naiveMethod.Fr <- forecast(naiveMethod, h=tWindow)
     autoplot(naiveMethod.Fr, main=paste('Naive Method', title), ylab="Number of flights", xlab= 'Time')
     if(save){
-      ggsave(file=paste(path,"Predizioni Finali con Naive Method - ", title,".jpg", sep=""))
+      ggsave(file=paste(path,"Best Model con Naive Method - ", title,".jpg", sep=""))
     }
   }
   if(model == 'Average Method'){
@@ -379,7 +418,7 @@ plotBestModel<- function(model, sr, tWindow, title,path, save = TRUE){
     meanMethod.Fr <- forecast(meanMethod, h=tWindow)
     autoplot(meanMethod.Fr, main=paste('Average Method', title), ylab="Number of flights", xlab= 'Time')
     if(save){
-      ggsave(file=paste(path,"Predizioni Finali con Average Method - ", title,".jpg", sep=""))
+      ggsave(file=paste(path,"Best Model con Average Method - ", title,".jpg", sep=""))
     }
   }
 }
