@@ -271,7 +271,7 @@ evaluateBesModel <- function(tserie, tWindow, title,path, save = TRUE){
   
   colnames(temp.table) <-
     c("Average Method",
-      "Naive Methiod",
+      "Naive Method",
       "SNaive Method",
       "Drift method",
       "Arima")
@@ -314,4 +314,47 @@ evaluateBesModel <- function(tserie, tWindow, title,path, save = TRUE){
   
   return (names(tableEval)[which.max(tableEval)])
   
+}
+
+plotBestModel<- function(model, sr, tWindow, title,path, save = TRUE){
+  if(model == 'Arima'){
+    arimaMod <- auto.arima(sr, stepwise=FALSE, approximation=FALSE)
+    arimaMod.Fr <- forecast(arimaMod, h=tWindow)
+    autoplot(arimaMod.Fr, main=paste('Arima', title), ylab="Number of flights", xlab= 'Time')
+    if(save){
+      ggsave(file=paste(path,"Predizioni Finali con Arima - ", title,".jpg", sep=""))
+    }
+  }
+  if(model == 'Drift method'){
+    driftMethod <- snaive(sr,h=tWindow)
+    driftMethod.Fr <- forecast(driftMethod, h=tWindow)
+    autoplot(driftMethod.Fr, main=paste('Drift method', title), ylab="Number of flights", xlab= 'Time')
+    if(save){
+      ggsave(file=paste(path,"Predizioni Finali con Drift method - ", title,".jpg", sep=""))
+    }
+  }
+  if(model == 'SNaive Method'){
+    sNaiveMethod <- rwf(sr,drift=TRUE,h=tWindow)
+    sNaiveMethod.Fr <- forecast(sNaiveMethod, h=tWindow)
+    autoplot(sNaiveMethod.Fr, main=paste('SNaive Method', title), ylab="Number of flights", xlab= 'Time')
+    if(save){
+      ggsave(file=paste(path,"Predizioni Finali con SNaive Method - ", title,".jpg", sep=""))
+    }
+  }
+  if(model == 'Naive Method'){
+    naiveMethod <- rwf(sr,h=tWindow)
+    naiveMethod.Fr <- forecast(naiveMethod, h=tWindow)
+    autoplot(naiveMethod.Fr, main=paste('Naive Method', title), ylab="Number of flights", xlab= 'Time')
+    if(save){
+      ggsave(file=paste(path,"Predizioni Finali con Naive Method - ", title,".jpg", sep=""))
+    }
+  }
+  if(model == 'Average Method'){
+    meanMethod <- meanf(sr,h=tWindow)
+    meanMethod.Fr <- forecast(meanMethod, h=tWindow)
+    autoplot(meanMethod.Fr, main=paste('Average Method', title), ylab="Number of flights", xlab= 'Time')
+    if(save){
+      ggsave(file=paste(path,"Predizioni Finali con Average Method - ", title,".jpg", sep=""))
+    }
+  }
 }

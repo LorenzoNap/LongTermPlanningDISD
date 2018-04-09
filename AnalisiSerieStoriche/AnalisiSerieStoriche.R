@@ -17,11 +17,15 @@ sprintf("#### Salvataggio File: %s ####", saveFile)
 
 
 timeSeriesAnalysis <- function(tSerie, title, path, tWindow, saveFile){
-  plotTimeseries(tSerie,title ,path,saveFile)
-  plotForecastTrainingSet(tSerie, tWindow,title ,path, saveFile)
-  plotArimaModel(tSerie, tWindow, title ,path, saveFile)
+  #plotTimeseries(tSerie,title ,path,saveFile)
+  #plotForecastTrainingSet(tSerie, tWindow,title ,path, saveFile)
+  #plotArimaModel(tSerie, tWindow, title ,path, saveFile)
   bestModel <- evaluateBesModel(tSerie, tWindow, title ,path, save = saveFile)
   print( paste("Il miglior modello in base alle misure di errore per", "Serie Storica Reg Arr","e'",bestModel ))
+  #plot completo del best model
+  plotBestModel(bestModel, tSerie, tWindow, title ,path, save = saveFile)
+  
+  
 }
 
 #arrivi regionali
