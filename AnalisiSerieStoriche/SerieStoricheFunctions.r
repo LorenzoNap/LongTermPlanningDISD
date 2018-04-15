@@ -285,11 +285,11 @@ evaluateBesModel <- function(tserie, tWindow, title,path, save = TRUE){
   a5 = accuracy(arimaMod.Fr, ser)
   
   keeps <- c("ME", "RMSE", "MAE", "MPE", "MAPE")
-  a1 <- a1[1,keeps, drop = FALSE]
-  a2 <- a2[1,keeps, drop = FALSE]
-  a3 <- a3[1,keeps, drop = FALSE]
-  a4 <- a4[1,keeps, drop = FALSE]
-  a5 <- a5[1,keeps, drop = FALSE]
+  a1 <- a1[2,keeps, drop = FALSE]
+  a2 <- a2[2,keeps, drop = FALSE]
+  a3 <- a3[2,keeps, drop = FALSE]
+  a4 <- a4[2,keeps, drop = FALSE]
+  a5 <- a5[2,keeps, drop = FALSE]
   
   temp.table <- as.data.frame(cbind(a1[1, ], a2[1, ], a3[1, ], a4[1, ], a5[1, ]))
   
