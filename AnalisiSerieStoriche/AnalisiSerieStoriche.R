@@ -22,6 +22,8 @@ timeSeriesAnalysis <- function(tSerie, title, path, tWindow, saveFile){
   plotArimaModel(tSerie, tWindow, title ,path, saveFile)
   bestModel <- evaluateBesModel(tSerie, tWindow, title ,path, save = saveFile)
   print( paste("Il miglior modello in base alle misure di errore per", "Serie Storica Reg Arr","e'",bestModel ))
+  #plot completo del best model
+  plotBestModel(bestModel, tSerie, tWindow, title ,path, save = saveFile)
 }
 
 # arrivi regionali

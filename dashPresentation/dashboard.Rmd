@@ -80,8 +80,10 @@ renderValueBox({
 Row {data-height=650}
 -------------------------------------
 
-### {data-width=300}
+###
 ```{r}
+
+
 
 p <- plot_ly(total, labels = ~Categorie, values = ~NumeroVoli, type = 'pie',
              textposition = 'inside',
@@ -103,48 +105,79 @@ p
 ###
 
 ```{r}
-library(leaflet)
-library(geosphere)
-library(sp)
 
-renderLeaflet({
-   greenLeafIcon <- makeIcon(
-    iconUrl = "http://icons.iconarchive.com/icons/paomedia/small-n-flat/96/map-marker-icon.png",
-    iconWidth = 10, iconHeight = 10)
-   
+renderGlobe({
+       library(threejs)
+ earth <- "http://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73909/world.topo.bathy.200412.3x5400x2700.jpg"
+ 
   latTambo <- -26.134789
   lonTambo <- 28.240528
   
-  # f <- function(x) {
-  #   lon <- as.numeric(x["LON2c"])
-  #   lat  <- as.numeric(x["LAT2c"])
-  #   inter1 <- gcIntermediate(c(lonTambo, latTambo), c(lon, lat),n=200,addStartEnd=TRUE, sp = TRUE, breakAtDateLine = TRUE)
-  #   inter1
-  # }
-  # 
-  # result <- apply(rotte.agg3, 1, f)
+  df <- data.frame(matrix(ncol = 4, nrow = 0))
+x <- c("origin_lat", "origin_long", "dest_lat", "dest_long")
+colnames(df) <- x
   
   
-  vector <- vector(mode='list', length = nrow(rotte.agg3))
   for (row in 1:nrow(rotte.agg3)) {
+    
     lon <- rotte.agg3[row, "LON2c"]
     lat  <- rotte.agg3[row, "LAT2c"]
-    inter1 <- gcIntermediate(c(lonTambo, latTambo), c(lon, lat), n=200, addStartEnd=TRUE, sp = TRUE, breakAtDateLine = TRUE)
-    vector[row] <- inter1
-  }
-  
-  
-  ll0 <- lapply( vector , function(x) `@`(x , "lines") )
-ll1 <- lapply( unlist( ll0 ) , function(y) `@`(y,"Lines") )
-Sl <- SpatialLines( list( Lines( unlist( ll1 ) , ID = 1 ) ) )
+        
+        df[nrow(df) + 1,] = c(-26.134789,28.240528,lat, lon)
 
-m <- leaflet(Sl)  %>% addTiles() %>% addPolylines(color="red", weight=0.5) %>%  setView(lonTambo, latTambo, zoom = 3) %>%
-    addMarkers(data = rotte.agg3,~LON2c, ~LAT2c, popup = ~as.character(DESCRIPTION1),
-               icon =greenLeafIcon
-               , label = ~as.character(DESCRIPTION1))
-  m
-  
+
+  }
+ 
+
+#Display the data on the globe
+     
+    p <- globejs(img = earth,  lat=latTambo, long=lonTambo, arcs= df, arcsHeight=0.3, arcsLwd=2, arcsColor="#ffff00", arcsOpacity=0.15,
+        atmosphere=TRUE)
+    p
 })
+
+# library(leaflet)
+# library(geosphere)
+# library(sp)
+# 
+# renderLeaflet({
+#    greenLeafIcon <- makeIcon(
+#     iconUrl = "http://icons.iconarchive.com/icons/paomedia/small-n-flat/96/map-marker-icon.png",
+#     iconWidth = 10, iconHeight = 10)
+#    
+#   latTambo <- -26.134789
+#   lonTambo <- 28.240528
+#   
+#   # f <- function(x) {
+#   #   lon <- as.numeric(x["LON2c"])
+#   #   lat  <- as.numeric(x["LAT2c"])
+#   #   inter1 <- gcIntermediate(c(lonTambo, latTambo), c(lon, lat),n=200,addStartEnd=TRUE, sp = TRUE, breakAtDateLine = TRUE)
+#   #   inter1
+#   # }
+#   # 
+#   # result <- apply(rotte.agg3, 1, f)
+#   
+#   
+#   vector <- vector(mode='list', length = nrow(rotte.agg3))
+#   for (row in 1:nrow(rotte.agg3)) {
+#     lon <- rotte.agg3[row, "LON2c"]
+#     lat  <- rotte.agg3[row, "LAT2c"]
+#     inter1 <- gcIntermediate(c(lonTambo, latTambo), c(lon, lat), n=200, addStartEnd=TRUE, sp = TRUE, breakAtDateLine = TRUE)
+#     vector[row] <- inter1
+#   }
+#   
+#   
+#   ll0 <- lapply( vector , function(x) `@`(x , "lines") )
+# ll1 <- lapply( unlist( ll0 ) , function(y) `@`(y,"Lines") )
+# Sl <- SpatialLines( list( Lines( unlist( ll1 ) , ID = 1 ) ) )
+# 
+# m <- leaflet(Sl)  %>% addTiles() %>% addPolylines(color="red", weight=0.5) %>%  setView(lonTambo, latTambo, zoom = 3) %>%
+#     addMarkers(data = rotte.agg3,~LON2c, ~LAT2c, popup = ~as.character(DESCRIPTION1),
+#                icon =greenLeafIcon
+#                , label = ~as.character(DESCRIPTION1))
+#   m
+#   
+# })
   
  
   # m <- leaflet(data = rotte.agg3) %>% addTiles() %>%

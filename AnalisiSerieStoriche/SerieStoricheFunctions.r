@@ -43,11 +43,50 @@ plotTimeseries <- function(tserie, title, path, save = TRUE) {
     ggsave(paste(path,"Boxplot ", title,".jpg", sep=""), width = widthGraphs)
   }
   
-  autoplot(decompose(tserie), main= paste("Decomposition", title))
+  autoplot( stl(tserie, s.window=5), main= paste("Decomposition", title))
   
   if(save){
     ggsave(paste(path,"Decomposition ", title,".jpg", sep=""), width = widthGraphs)
   }
+  
+  dir.create(file.path(path, "CorrelationPlots//"), showWarnings = FALSE)
+  
+  
+  #ACF e PACF
+  require(cowplot)
+  
+  plot_grid(ggAcf(tserie, main=paste("ACF", title)), ggPacf(tserie, main=paste("PACF", title)))
+  if(save){
+    ggsave(paste(paste(path, "CorrelationPlots//", sep = ""),"1 ACF_PACF plot ", title,".jpg", sep=""), width = widthGraphs)
+  }
+  
+  #detrend time series
+  tserieDeTrend <- stl(tserie, s.window = 'periodic')$time.series[,2]
+  tserieDeTrend <- tserie - tserieDeTrend
+  autoplot(tserieDeTrend, main=paste("Detrend ", title), ylab = "Number of Flights", xlab="time")
+  
+  if(save){
+    ggsave(paste(paste(path, "CorrelationPlots//", sep = ""),"2 Detrend ", title,".jpg", sep=""), width = widthGraphs)
+  }  
+  
+  #PACF e ACF detrend
+  plot_grid(ggAcf(tserieDeTrend, main=paste("ACF Detrend", title)), ggPacf(tserieDeTrend, main=paste("PACF Detrend", title)))
+  if(save){
+    ggsave(paste(paste(path, "CorrelationPlots//", sep = ""),"3 ACF_PACF Detrend plot ", title,".jpg", sep=""), width = widthGraphs)
+  }
+  
+  #remove season
+  tserieDeTrendDeSeason <- diff(tserieDeTrend, lG = 12)
+  autoplot(tserieDeTrendDeSeason, main=paste("Detrend, Deseason ", title), ylab = "Number of Flights", xlab="time")
+  if(save){
+    ggsave(paste(paste(path, "CorrelationPlots//", sep = ""),"4 Detrend, DeSeason ", title,".jpg", sep=""), width = widthGraphs)
+  }
+  #ACF e PACF
+  plot_grid(ggAcf(tserieDeTrendDeSeason, main=paste("ACF Detrend, DeSeason", title)), ggPacf(tserieDeTrendDeSeason, main=paste("PACF Detrend, DeSeason", title)))
+  if(save){
+    ggsave(paste(paste(path, "CorrelationPlots//", sep = ""),"5 ACF_PACF Detrend, DeSeason plot ", title,".jpg", sep=""), width = widthGraphs)
+  }
+  
   
 }
 
@@ -61,7 +100,7 @@ plotForecastTrainingSet <- function(tserie, tWindow = 36, title, path, save = TR
   #   tWindow: periodo delle previsioni (in mesi), di default e' 36 mesi
   #   tittle: titolo da visualizzare nel plot
   #   save: salva il grafico invece di mostrarlo
-
+  
   # training set
   sr <- window(tserie, start=c(2003,4), end=c(2014,4))
   # test set
@@ -75,7 +114,7 @@ plotForecastTrainingSet <- function(tserie, tWindow = 36, title, path, save = TR
   driftMethod <- snaive(sr,h=tWindow)
   arimaMod <- auto.arima(sr, stepwise=FALSE, approximation=FALSE)
   arimaMod.Fr <- forecast(arimaMod, h=tWindow)
- 
+  
   dfMeanMethod <- data.frame(Y=as.matrix(meanMethod$mean), date=as.Date(as.yearmon(time(meanMethod$mean))))
   dfsNaiveMethod <- data.frame(Y=as.matrix(sNaiveMethod$mean), date=as.Date(as.yearmon(time(sNaiveMethod$mean))))
   dfnaiveMethod <- data.frame(Y=as.matrix(naiveMethod$mean), date=as.Date(as.yearmon(time(naiveMethod$mean))))
@@ -102,7 +141,7 @@ plotForecastTrainingSet <- function(tserie, tWindow = 36, title, path, save = TR
           panel.grid.minor = element_blank()) +
     scale_colour_manual(name="Methods", 
                         values=c("purple", "red", "green", "orange", "brown2", "blue"))
-
+  
   if(save){
     ggsave(paste(path,"Predizioni Dopo Training Set-", title,".jpg", sep=""), width = widthGraphs)
   }
@@ -147,9 +186,9 @@ plotForecastTrainingSet <- function(tserie, tWindow = 36, title, path, save = TR
   
   ggplot() +
     geom_line(data=dfMeanMethod, aes(date, Y, color="Mean Method"), size = 0.5) +
-    geom_line(data=dfsNaiveMethod, aes(date, Y,  color="Naive Method"), size = 0.5)+
-    geom_line(data=dfnaiveMethod, aes(date, Y,  color="Drift Method"), size = 0.5)+
-    geom_line(data=dfdriftMethod, aes(date, Y,  color="SeasonalMaive Method"), size = 0.5)+
+    geom_line(data=dfsNaiveMethod, aes(date, Y,  color="SeasonalMaive Method"), size = 0.5)+
+    geom_line(data=dfnaiveMethod, aes(date, Y,  color="Naive Method"), size = 0.5)+
+    geom_line(data=dfdriftMethod, aes(date, Y,  color="Drift Method"), size = 0.5)+
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
     geom_line(data=dfSerie, aes(date, Y,  color="Test Set"), size = 0.5)+
     labs(title=title, 
@@ -209,7 +248,7 @@ plotArimaModel <- function(tserie, tWindow, title, path, save = TRUE){
     ggsave(paste(path, arimaMod.Fr$method , title,".jpg", sep=""), width = widthGraphs)
   }
   
- 
+  
   ggplot() +
     geom_line(data=dfArimaMod, aes(date, Y,  color="Arima Method"), size = 0.5)+
     geom_line(data=dftestData, aes(date, Y,  color="Test Set"), size = 0.5)+
@@ -267,9 +306,9 @@ evaluateBesModel <- function(tserie, tWindow, title,path, save = TRUE){
   #
   # Returns:
   #   Il modello migliore in base alle metriche "ME", "RMSE", "MAE", "MPE", "MAPE"
- 
-  sr <- window(tserie, start=c(2003,4), end=c(2014,4))
-  ser <- window(tserie, start=c(2014,5), end=c(2017,3))
+  
+  sr <- window(tserie, start=c(2003,4), end=c(2015,4))
+  ser <- window(tserie, start=c(2015,5), end=c(2017,3))
   
   meanMethod <- meanf(sr,h=tWindow)
   naiveMethod <- rwf(sr,h=tWindow)
@@ -296,7 +335,7 @@ evaluateBesModel <- function(tserie, tWindow, title,path, save = TRUE){
   
   colnames(temp.table) <-
     c("Average Method",
-      "Naive Methiod",
+      "Naive Method",
       "SNaive Method",
       "Drift method",
       "Arima")
@@ -328,15 +367,75 @@ evaluateBesModel <- function(tserie, tWindow, title,path, save = TRUE){
   
   
   dfEvalColumn <- c("ME", "RMSE", "MAE", "MPE", "MAPE")
-  dfEvalRow <- c(names(temp.table)[which.min(apply(temp.table[1,],MARGIN=2,min))],
-                 names(temp.table)[which.min(apply(temp.table[2,],MARGIN=2,min))],
-                 names(temp.table)[which.min(apply(temp.table[3,],MARGIN=2,min))],
-                 names(temp.table)[which.min(apply(temp.table[4,],MARGIN=2,min))],
-                 names(temp.table)[which.min(apply(temp.table[5,],MARGIN=2,min))])
+  dfEvalRow <- c(names(temp.table)[which.min(abs(apply(temp.table[1,],MARGIN=2,min)))],
+                 names(temp.table)[which.min(abs(apply(temp.table[2,],MARGIN=2,min)))],
+                 names(temp.table)[which.min(abs(apply(temp.table[3,],MARGIN=2,min)))],
+                 names(temp.table)[which.min(abs(apply(temp.table[4,],MARGIN=2,min)))],
+                 names(temp.table)[which.min(abs(apply(temp.table[5,],MARGIN=2,min)))])
   dfEval <- data.frame(dfEvalColumn, dfEvalRow)
+  
+  dfEval
   
   tableEval <-  table(dfEval$dfEvalRow)
   
   return (names(tableEval)[which.max(tableEval)])
   
+}
+
+plotBestModel<- function(model, sr, tWindow, title,path, save = TRUE){
+  if(model == 'Arima'){
+    arimaMod <- auto.arima(sr, stepwise=FALSE, approximation=FALSE)
+    arimaMod.Fr <- forecast(arimaMod, h=tWindow)
+    if(save){
+      jpeg(paste(path,"Best Model con Arima - ", title,".jpg", sep=""), width = 800)
+    }
+    plot(arimaMod.Fr, main=paste('Arima', title), ylab="Number of flights", xlab= 'Time')
+    if(save){
+      dev.off()
+    }
+  }
+  if(model == 'Drift method'){
+    driftMethod <- snaive(sr,h=tWindow)
+    driftMethod.Fr <- forecast(driftMethod, h=tWindow)
+    if(save){
+      jpeg(paste(path,"Best Model con Drift method - ", title,".jpg", sep=""), width = 800)
+    }
+    plot(driftMethod.Fr, main=paste('Drift method', title), ylab="Number of flights", xlab= 'Time')
+    if(save){
+      dev.off()
+    }
+  }
+  if(model == 'SNaive Method'){
+    sNaiveMethod <- rwf(sr,drift=TRUE,h=tWindow)
+    sNaiveMethod.Fr <- forecast(sNaiveMethod, h=tWindow)
+    if(save){
+      jpeg(paste(path,"Best Model con SNaive Method - ", title,".jpg", sep=""), width = 800)
+    }
+    plot(sNaiveMethod.Fr, main=paste('SNaive Method', title), ylab="Number of flights", xlab= 'Time')
+    if(save){
+      dev.off()
+    }
+  }
+  if(model == 'Naive Method'){
+    naiveMethod <- rwf(sr,h=tWindow)
+    naiveMethod.Fr <- forecast(naiveMethod, h=tWindow)
+    if(save){
+      jpeg(paste(path,"Best Model con Naive Method - ", title,".jpg", sep=""), width = 800)
+    }
+    plot(naiveMethod.Fr, main=paste('Naive Method', title), ylab="Number of flights", xlab= 'Time')
+    if(save){
+      dev.off()
+    }
+  }
+  if(model == 'Average Method'){
+    meanMethod <- meanf(sr,h=tWindow)
+    meanMethod.Fr <- forecast(meanMethod, h=tWindow)
+    if(save){
+      jpeg(paste(path,"Best Model con Average Method - ", title,".jpg", sep=""), width = 800)
+    }
+    plot(meanMethod.Fr, main=paste('Average Method', title), ylab="Number of flights", xlab= 'Time')
+    if(save){
+      dev.off()
+    }
+  }
 }

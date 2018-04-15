@@ -49,15 +49,21 @@ printCluster <- function(kvoli_rotte, dataFrame, pathFile) {
   #   dataFrame: data frame sul quale visualizzare i cluster
   
   # cluster <- factor(kvoli_rotte$cluster)
-  # centroids <- data.frame( kvoli_rotte$centers)
-  # ggplot() + 
-  #   geom_point(data = as.data.frame(dataFrame), 
-  #              aes(x = distanza, 
+  # 
+  # centroidi <- kvoli_rotte$centers
+  # 
+  # centroidi[,c("MTOW")]     <- 2*sd(dataFrame[,c("MTOW")])*centroidi[,c("MTOW")]         + mean(dataFrame$MTOW)*array(1, c(3,1))
+  # centroidi[,c("distanza")] <- 2*sd(dataFrame[,c("distanza")])*centroidi[,c("distanza")] + mean(dataFrame[,c("distanza")])*array(1, c(3,1))
+  # 
+  # centroids <- data.frame(centroidi)
+  # ggplot() +
+  #   geom_point(data = as.data.frame(dataFrame),
+  #              aes(x = distanza,
   #                  y = MTOW,
   #                  color = cluster),
-  #              size = 3) + 
+  #              size = 3) +
   #   geom_point(data=centroids, aes(x=distanza,y=MTOW, color="Center")) +
-  #   geom_point(data=centroids, aes(x=distanza,y=MTOW, color="Center"), size=52, alpha=.3, show.legend=F) 
+  #   geom_point(data=centroids, aes(x=distanza,y=MTOW, color="Center"), size=52, alpha=.3, show.legend=F)
   fviz_cluster(kvoli_rotte, voli_rotte_clean, geom = c("point"))
   ggsave(paste(pathFile,"clustering",".png", sep=""))
   

@@ -117,6 +117,7 @@ reg.arr.db <- ts(reg.arr.aflight$CONTO, frequency=12, start=startSeriesDB)
 reg.dep.db <- ts(reg.dep.aflight$CONTO, frequency=12, start=startSeriesDB)
 int.arr.db <- ts(int.arr.aflight$CONTO, frequency=12, start=startSeriesDB)
 int.dep.db <- ts(int.dep.aflight$CONTO, frequency=12, start=startSeriesDB)
+dom.arr.aflight$CONTO[1] = 5044 #bugfix
 dom.arr.db <- ts(dom.arr.aflight$CONTO, frequency=12, start=startSeriesDB)
 dom.dep.db <- ts(dom.dep.aflight$CONTO, frequency=12, start=startSeriesDB)
 
