@@ -105,9 +105,9 @@ p
 ###
 
 ```{r}
+library(threejs)
 
 renderGlobe({
-       library(threejs)
  earth <- "http://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73909/world.topo.bathy.200412.3x5400x2700.jpg"
  
   latTambo <- -26.134789

@@ -1,79 +1,14 @@
-library(RODBC)
-dbhandle <-odbcDriverConnect(connection=param.connessione.db)
+library(readr)
 
 # Scarica le serie storiche a partire dalla stessa data di cui alle serie precedenti.
-reg.arr.aflight<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
-                           FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
-                           WHERE A_FLIGHT.ID in
-                           (SELECT A_MOVEMENT.ARR_FLIGHT_ID
-                           FROM [AMS516].[dbo].[A_MOVEMENT] 
-                           INNER JOIN A_FLIGHT ON ARR_FLIGHT_ID=A_FLIGHT.ID)
-                           and S_ROUTE.FLIGHT_TYPE_ID=1
-                           --and A_FLIGHT.STO between '20120401' and '20171231'
-                           and A_FLIGHT.QUALIFIER_ID=1
-                           and A_FLIGHT.EXCEPTION_ID is null
-                           GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
-                           order by ANNO, MESE;")
-reg.dep.aflight<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
-                           FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
-                           WHERE A_FLIGHT.ID in
-                           (SELECT A_MOVEMENT.DEP_FLIGHT_ID
-                           FROM [AMS516].[dbo].[A_MOVEMENT] 
-                           INNER JOIN A_FLIGHT ON DEP_FLIGHT_ID=A_FLIGHT.ID)
-                           and S_ROUTE.FLIGHT_TYPE_ID=1
-                           --and A_FLIGHT.STO between '20120401' and '20171231'
-                           and A_FLIGHT.QUALIFIER_ID=1
-                           and A_FLIGHT.EXCEPTION_ID is null
-                           GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
-                           order by ANNO, MESE;")
-int.arr.aflight<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
-                           FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
-                           WHERE A_FLIGHT.ID in
-                           (SELECT A_MOVEMENT.ARR_FLIGHT_ID
-                           FROM [AMS516].[dbo].[A_MOVEMENT] 
-                           INNER JOIN A_FLIGHT ON ARR_FLIGHT_ID=A_FLIGHT.ID)
-                           and S_ROUTE.FLIGHT_TYPE_ID=2
-                           --and A_FLIGHT.STO between '20120401' and '20171231'
-                           and A_FLIGHT.QUALIFIER_ID=1
-                           and A_FLIGHT.EXCEPTION_ID is null
-                           GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
-                           order by ANNO, MESE;")
-int.dep.aflight<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
-                           FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
-                           WHERE A_FLIGHT.ID in
-                           (SELECT A_MOVEMENT.DEP_FLIGHT_ID
-                           FROM [AMS516].[dbo].[A_MOVEMENT] 
-                           INNER JOIN A_FLIGHT ON DEP_FLIGHT_ID=A_FLIGHT.ID)
-                           and S_ROUTE.FLIGHT_TYPE_ID=2
-                           --and A_FLIGHT.STO between '20120401' and '20171231'
-                           and A_FLIGHT.QUALIFIER_ID=1
-                           and A_FLIGHT.EXCEPTION_ID is null
-                           GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
-                           order by ANNO, MESE;")
-dom.arr.aflight<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
-                           FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
-                           WHERE A_FLIGHT.ID in
-                           (SELECT A_MOVEMENT.ARR_FLIGHT_ID
-                           FROM [AMS516].[dbo].[A_MOVEMENT] 
-                           INNER JOIN A_FLIGHT ON ARR_FLIGHT_ID=A_FLIGHT.ID)
-                           and S_ROUTE.FLIGHT_TYPE_ID=3
-                           --and A_FLIGHT.STO between '20120401' and '20171231'
-                           and A_FLIGHT.QUALIFIER_ID=1
-                           and A_FLIGHT.EXCEPTION_ID is null
-                           GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
-                           order by ANNO, MESE;")
-dom.dep.aflight<- sqlQuery(dbhandle, "SELECT count(*) as CONTO, DATEPART(YEAR, STO) as ANNO, DATEPART(MONTH, STO) as MESE
-                           FROM [AMS516].[dbo].[A_FLIGHT] inner join S_ROUTE on A_FLIGHT.ROUTE_ID=S_ROUTE.ID
-                           WHERE A_FLIGHT.ID in
-                           (SELECT A_MOVEMENT.DEP_FLIGHT_ID
-                           FROM [AMS516].[dbo].[A_MOVEMENT] 
-                           INNER JOIN A_FLIGHT ON DEP_FLIGHT_ID=A_FLIGHT.ID)
-                           and S_ROUTE.FLIGHT_TYPE_ID=3
-                           --and A_FLIGHT.STO between '20120401' and '20171231'
-                           and A_FLIGHT.QUALIFIER_ID=1
-                           and A_FLIGHT.EXCEPTION_ID is null
-                           GROUP BY DATEPART(YEAR, STO), DATEPART(MONTH, STO)
-                           order by ANNO, MESE;")
+reg.arr.aflight <- read_csv("reg_arr_aflight.csv", col_types = cols(X1 = col_skip()))
+reg.dep.aflight <- read_csv("reg_dep_aflight.csv", col_types = cols(X1 = col_skip()))
+int.arr.aflight <- read_csv("int_arr_aflight.csv", col_types = cols(X1 = col_skip()))
+int.dep.aflight <- read_csv("int_dep_aflight.csv", col_types = cols(X1 = col_skip()))
+dom.arr.aflight <- read_csv("dom_arr_aflight.csv", col_types = cols(X1 = col_skip()))
+dom.dep.aflight <-  read_csv("dom_dep_aflight.csv", col_types = cols(X1 = col_skip()))
+
+
 
 # trasforma i dati in time series
 startSeriesDB <- c(2003,4)
@@ -86,39 +21,7 @@ dom.dep.db <- ts(dom.dep.aflight$CONTO, frequency=12, start=startSeriesDB)
 
 
 createMap <- function(){
-  rotte <- sqlQuery(dbhandle, 
-                    "SELECT S_ROUTE.ID
-                    ,S_ROUTE.HOME_AIRPORT_ID
-                    ,PAR.LATTITUDE as LAT1
-                    ,PAR.LONGITUDE as LON1
-                    ,S_ROUTE.CODE
-                    ,S_ROUTE.FLIGHT_TYPE_ID
-                    ,S_ROUTE.FLIGHT_NATURE_ID
-                    ,S_ROUTE.PORT_AIRPORT_ID
-                    ,ARR.LATTITUDE as LAT2
-                    ,ARR.LONGITUDE as LON2
-                    ,S_ROUTE.DESCRIPTION1 
-                    ,S_ROUTE.FLYING_TIME
-                    FROM [AMS516].[dbo].[S_ROUTE] 
-                    join S_AIRPORT as ARR  on ARR.ID=S_ROUTE.PORT_AIRPORT_ID
-                    join S_AIRPORT as PAR on PAR.ID=S_ROUTE.HOME_AIRPORT_ID")
-  
-  library(tidyr)
-  library(dplyr) # per convertire i gradi gps a decimali
-  library(sp)
-  rotte <- mutate(rotte, 
-                  LAT1c=LAT1 %>%
-                    sub(':', 'd', .) %>%
-                    sub(':', '\'', .) %>%
-                    sub(':', '" ', .) %>%
-                    char2dms %>%
-                    as.numeric,
-                  LON1c=LON1 %>%
-                    sub(':', 'd', .) %>%
-                    sub(':', '\'', .) %>%
-                    sub(':', '" ', .) %>%
-                    char2dms %>%
-                    as.numeric)
+  rotte <- read_csv("rotte.csv", col_types = cols(X1 = col_skip()))
   
   rotte.null      <- rotte[grep("0:0:0", rotte$LAT2),]
   rotte.na        <- rotte[which(is.na(rotte$LAT2)),]
