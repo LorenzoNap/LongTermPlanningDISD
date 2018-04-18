@@ -296,7 +296,7 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- input$anni * 12
-        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        arimaMod <- auto.arima(tSerie)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
       })
@@ -553,7 +553,7 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- 3 * 12
-        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        arimaMod <- auto.arima(tSerie)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
         
@@ -601,7 +601,7 @@ renderDygraph({
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- 3 * 12
 
-        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        arimaMod <- auto.arima(tSerie)
 
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
@@ -650,7 +650,7 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- 3 * 12
-        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        arimaMod <- auto.arima(tSerie)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
         z$doOil3 <- sum(arimaMod.Fr$mean)
@@ -696,7 +696,7 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- 3 * 12
-        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        arimaMod <- auto.arima(tSerie)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
         z$doOil4 <- sum(arimaMod.Fr$mean)
@@ -743,7 +743,7 @@ renderDygraph({
         n <- 2
         incProgress(1/n, detail = paste("Calcolo Arima"))
         tWindow <- 3 * 12
-        arimaMod <- auto.arima(tSerie, stepwise=FALSE, approximation=FALSE)
+        arimaMod <- auto.arima(tSerie)
         incProgress(2/n, detail = paste("Predizioni Arima"))
         arimaMod.Fr <- forecast(arimaMod, h = tWindow)
         z$doOil5 <- sum(arimaMod.Fr$mean)
