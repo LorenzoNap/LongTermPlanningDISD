@@ -1,4 +1,5 @@
 library(readr)
+library(sp)
 
 # Scarica le serie storiche a partire dalla stessa data di cui alle serie precedenti.
 reg.arr.aflight <- read_csv("reg_arr_aflight.csv", col_types = cols(X1 = col_skip()))
