@@ -27,9 +27,7 @@ library(xtable)
 library(pander)
 library(readr)
 library(data.table)
-library("cluster")
 library(factoextra)
-library("highcharter")
 library(dplyr)
 total <- data.frame("Categorie"=c("Regionali","Internazionali", "Domestici"),
                     "NumeroVoli"=c(
